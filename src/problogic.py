@@ -17,8 +17,48 @@ class Distribution:
                 (0,0,1): 0.25,
             }
         """
-        self.variables = variables
-        self.probabilities = probabilities
+        self.variables = variables  # tuple
+        self.probabilities = probabilities  # dict
+
+    def init_from_file(input_file_path):
+        import re
+
+        variables_list = []
+        probabilities = {}
+
+        var_regex = re.compile(r'var *([a-zA-Z0-9]*) */ *([0-9])*')
+
+        str_varvals_regex = r' *(\([^, ] *(?:,[^, ] *)*\)) *'
+        str_probvals_regex = r' *([0-9]\.?(?:[0-9]*))'
+        prob_regex = re.compile(str_varvals_regex + ':' + str_probvals_regex)
+
+        input_file = open(input_file_path, 'r')
+
+        reading_dist_flag = False
+        for line in input_file:
+            line = line.strip()
+
+            if line.startswith('dist'):
+                reading_dist_flag = True
+
+            elif line.startswith('var'):
+                var_name, var_dim = re.findall(var_regex, line)[0]
+                variables_list.append(Variable(var_name, var_dim))
+
+            elif reading_dist_flag:
+                if line.startswith('.'):
+                    reading_dist_flag = False
+                    continue
+
+                str_var_values, str_prob = re.findall(prob_regex, line)[0]
+
+                var_values = str_var_values[1:-1].split(',')
+
+                key = tuple([v.strip() for v in var_values])
+                print(key)
+                probabilities[key] = float(str_prob)
+
+        return Distribution(tuple(variables_list), probabilities)
 
     def query_probability(self, expression):
         total_probability = 0
