@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+
 class Variable:
 
     def __init__(self, name, cardinality):
@@ -26,10 +27,9 @@ class Distribution:
         variables_list = []
         probabilities = {}
 
-        var_regex = re.compile(r'var *([a-zA-Z0-9]*) */ *([0-9])*')
-
         str_varvals_regex = r' *(\([^,]*(?:,[^,]*)*\)) *'
         str_probvals_regex = r' *([0-9]\.?(?:[0-9]*))'
+        var_regex = re.compile(r'var *([a-zA-Z0-9]*) */ *([0-9])*')
         prob_regex = re.compile(str_varvals_regex + ':' + str_probvals_regex)
 
         input_file = open(input_file_path, 'r')
@@ -85,6 +85,10 @@ class Distribution:
 
         return prob_intersection/prob_condition
 
+    def query_cond_independence(this, that, cond):
+        inter_cond = '(' + expression + ' and ' + condition + ')'
+        prob_cond = self.query_conditional_probability()
+
 
 class Expression:
 
@@ -98,40 +102,6 @@ class Expression:
 
     def __init__(self, str_expression):
         self.str_expression = str_expression
-
-    def _evaluate_and_sentence(stack, valuation):
-        left_side = Expression._evaluate_stack(stack, valuation)
-        right_side = Expression._evaluate_stack(stack, valuation)
-
-        return left_side and right_side
-
-    def _evaluate_or_sentence(stack, valuation):
-        left_side = Expression._evaluate_stack(stack, valuation)
-        right_side = Expression._evaluate_stack(stack, valuation)
-
-        return left_side or right_side
-
-    def _evaluate_not_sentence(stack, valuation):
-        return not Expression._evaluate_stack(stack, valuation)
-
-    def _evaluate_stack(stack, valuation):
-        sent_type, sent_elements = stack.pop()
-
-        if sent_type == Expression.BINOP_SENT:
-            if sent_elements[0] == Expression.OR:
-                return Expression._evaluate_or_sentence(stack, valuation)
-
-            elif sent_elements[0] == Expression.AND:
-                return Expression._evaluate_and_sentence(stack, valuation)
-
-        elif sent_type == Expression.NOT_SENT:
-            return Expression._evaluate_not_sentence(stack, valuation)
-
-        elif sent_type == Expression.ASSERT_SENT:
-            if valuation[sent_elements[0]] == sent_elements[1]:
-                return True
-            else:
-                return False
 
     def _evaluate_tree(expression_tree, val):
         sent_type, sent_elements = expression_tree.sentence
@@ -157,10 +127,6 @@ class Expression:
     def evaluate(self, valuation):
         expression_tree = self.get_tree()
         return Expression._evaluate_tree(expression_tree, valuation)
-
-    def evaluate_stack(self, valuation):
-        expression_stack = self.get_stack()
-        return Expression._evaluate_stack(expression_stack, valuation)
 
     def get_stack(self):
         import pyparsing as pp
@@ -259,10 +225,63 @@ class ExpressionTree:
         return rec__str__(self, n_spaces)
 
 
+class Query:
+
+    PROB_TYPE = 'prob'
+    COND_TYPE = 'cond'
+    INDEP_TYPE = 'indep'
+    CONDIND_TYPE = 'condind'
+
+    import re
+
+    prob_regex = re.compile(PROB_TYPE + r'([^\.]*)\.')
+    cond_regex = re.compile(COND_TYPE + r'([^\|]*)\|([^\.]*)\.')
+    indep_regex = re.compile(INDEP_TYPE + r'([^,]*),([^\?]*)\?')
+    condind_regex = re.compile(CONDIND_TYPE + r'([^,]*),([^\|]*)\|([^\?]*)\?')
+
+    def resolve_prob_query(line, model):
+        query = re.findall(Query.prob_regex, line)[0]
+        query = query.strip()
+
+        print(' %.5f = Prob( %s )' % (model.query_probability(query), query))
+
+    def resolve_cond_query(line, model):
+        query, cond = re.findall(Query.cond_regex, line)[0]
+        query, cond = query.strip(), cond.strip()
+
+        prob = model.query_conditional_probability(query, cond)
+        print(' %.5f = Prob( %s | %s )' % (prob, query, cond))
+
+    def resolve_indep_query(line, model):
+        this, that = re.findall(Query.indep_regex, line)[0]
+        this, that = this.strip(), that.strip()
+
+        indep = model.query_independence(this, that)
+        print(' %-7r = is %s indep %s ?' % (indep, this, that))
+
+    def resolve_condindep_query(line, model):
+        this, that, cond = re.findall(Query.indep_regex, line)[0]
+        this, that, cond = this.strip(), that.strip(), cond.strip()
+
+        indep = model.query_cond_independence(this, that, cond)
+        print(' %-7r = is %s indep %s | %s ?' % (indep, this, that, cond))
+
+    def resolve_str_query(line, model):
+        if line.startswith(Query.PROB_TYPE):
+            return Query.resolve_prob_query(line, model)
+        elif line.startswith(Query.COND_TYPE):
+            return Query.resolve_cond_query(line, model)
+        elif line.startswith(Query.INDEP_TYPE):
+            return Query.resolve_indep_query(line, model)
+        elif line.startswith(Query.CONDIND_TYPE):
+            return Query.resolve_condindep_query(line, model)
+
 
 if __name__ == "__main__":
     import sys
     import re
+
+    LABEL_MARK = '['
 
     if len(sys.argv) != 3:
         print("Usage: %s <model_file> <queries_file>" % sys.argv[0])
@@ -274,29 +293,9 @@ if __name__ == "__main__":
     model = Distribution.init_from_file(model_file_name)
     queries_file = open(queries_file_name, 'r')
 
-    query_regex = re.compile(r'query([^\.]*)\.')
-    indep_regex = re.compile(r'indep([^\.]*),([^\.]*)\?')
-    cond_query_regex = re.compile(r'cond([^\|]*)\|([^\.]*)\.')
-
     for line in queries_file:
         line = line.strip()
 
-        if line.startswith('query'):
-            query = re.findall(query_regex, line)[0]
-            query = query.strip()
-
-            print(' %.5f = Prob( %s )' % (model.query_probability(query),
-                                          query))
-        elif line.startswith('indep'):
-            this, that = re.findall(indep_regex, line)[0]
-            this, that = this.strip(), that.strip()
-
-            indep = model.query_independence(this, that)
-            print(' %-7r = is %s indep %s ?' % (indep, this, that))
-
-        elif line.startswith('cond'):
-            query, cond = re.findall(cond_query_regex, line)[0]
-            query, cond = query.strip(), cond.strip()
-
-            prob = model.query_conditional_probability(query, cond)
-            print(' %.5f = Prob( %s | %s )' % (prob, query, cond))
+        if line.startswith(LABEL_MARK):
+            print(line)
+        Query.resolve_str_query(line, model)
