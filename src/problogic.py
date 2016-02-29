@@ -70,6 +70,12 @@ class Distribution:
 
         return total_probability
 
+    def query_independence(self, this, that):
+        prob = self.query_probability(this)
+        prob_cond = self.query_conditional_probability(this, that)
+
+        return prob == prob_cond
+
     def query_conditional_probability(self, expression, condition):
         # Gaaaambiarra !
         exp_and_cond = '(' + expression + ' and ' + condition + ')'
@@ -253,6 +259,7 @@ class ExpressionTree:
         return rec__str__(self, n_spaces)
 
 
+
 if __name__ == "__main__":
     import sys
     import re
@@ -268,8 +275,9 @@ if __name__ == "__main__":
     queries_file = open(queries_file_name, 'r')
 
     query_regex = re.compile(r'query([^\.]*)\.')
+    indep_regex = re.compile(r'indep([^\.]*),([^\.]*)\?')
     cond_query_regex = re.compile(r'cond([^\|]*)\|([^\.]*)\.')
-    
+
     for line in queries_file:
         line = line.strip()
 
@@ -279,8 +287,14 @@ if __name__ == "__main__":
 
             print(' %.5f = Prob( %s )' % (model.query_probability(query),
                                           query))
+        elif line.startswith('indep'):
+            this, that = re.findall(indep_regex, line)[0]
+            this, that = this.strip(), that.strip()
 
-        if line.startswith('cond'):
+            indep = model.query_independence(this, that)
+            print(' %-7r = is %s indep %s ?' % (indep, this, that))
+
+        elif line.startswith('cond'):
             query, cond = re.findall(cond_query_regex, line)[0]
             query, cond = query.strip(), cond.strip()
 
