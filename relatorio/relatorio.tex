@@ -1,0 +1,168 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Short Sectioned Assignment
+% LaTeX Template
+% Version 1.0 (5/5/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Frits Wenneker (http://www.howtotex.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
+\usepackage[brazilian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amsfonts,amsthm,mathtools} % Math packages
+\usepackage{xspace}
+\usepackage{indentfirst}
+\usepackage{placeins}
+
+
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\usetikzlibrary{positioning}
+\usetikzlibrary{calc}
+
+%\usepackage{sectsty} % Allows customizing section commands
+%\allsectionsfont{\centering \normalfont\scshape} % Make all sections centered, the default font and small caps
+
+\usepackage{fancyhdr}
+\pagestyle{fancyplain}
+%\fancyhead{}
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[R]{\thepage} % Page numbering for right footer
+\renewcommand{\headrulewidth}{0pt} % Remove header underlines
+\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
+\setlength{\headheight}{13.6pt} % Customize the height of the header
+
+\bibliographystyle{apalike}
+
+%\sectionfont{\bfseries\Large\raggedright}
+%\subsectionfont{\bfseries\Large\raggedright}
+
+\newtheorem{theorem}{Teorema}
+\newtheorem{definition}{Definição}
+\newtheorem{property}{Propriedade}
+\newtheorem{proposition}{Proposição}
+
+\numberwithin{equation}{subsection}
+\numberwithin{figure}{subsection}
+\numberwithin{table}{subsection}
+\numberwithin{definition}{subsection}
+\numberwithin{theorem}{subsection}
+\numberwithin{property}{subsection}
+\numberwithin{proposition}{subsection}
+
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+
+\usepackage{listings}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttm,
+otherkeywords={self},             % Add keywords here
+keywordstyle=\ttb\color{deepblue},
+emph={MyClass,__init__},          % Custom highlighting
+emphstyle=\ttb\color{deepred},    % Custom highlighting style
+stringstyle=\color{deepgreen},
+frame=tb,                         % Any extra options here
+showstringspaces=false            % 
+}}
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+
+%\setlength{•}{•}\parindent{0pt} % Removes all indentation from paragraphs - comment this line for an assignment with lots of text
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} % Create horizontal rule command with 1 argument of height
+
+\title{	
+\normalfont \normalsize 
+\textsc{Modelos Probabilísticos Baseados em Grafos} \\ 
+\textsc{Prof. Denis Mauá} \\ [25pt]
+%\horrule{0.5pt} \\[0.4cm] % Thin top horizontal rule
+\huge Modelos Probabilísticos \\ [25pt]
+%\horrule{1pt} \\[0.5cm] % Thick bottom horizontal rule
+}
+\author{Thales A. B. Paiva \\ thalespaiva@gmail.com} % Your name
+\date{\today} % Today's date or a custom date
+
+\renewcommand{\P}{\mathbb{P}}
+\renewcommand{\bar}[1]{\overline{#1}}
+
+
+\begin{document}
+
+
+\maketitle % Print the title
+\horrule{1pt} \\[0.5cm] % Thick bottom horizontal rule
+
+\tableofcontents
+
+
+%----------------------------------------------------------------------------------------
+%	PROBLEM 1
+%----------------------------------------------------------------------------------------
+
+\pagebreak
+\section{Modelos Probabilísticos}
+\section{Lógica Proposicional Generalizada}
+\section{Cálculo de Probabilidades}
+
+\begin{python}
+class Teste:
+    pass
+\end{python}
+
+
+%----------------------------------------------------------------------------------------
+\begin{thebibliography}{1}
+
+\bibitem{Val79a} Valiant, Leslie G. "The complexity of enumeration and reliability problems." SIAM Journal on Computing 8.3 (1979): 410-421.
+
+\bibitem{Val79b} Valiant, Leslie G. "The complexity of computing the permanent." Theoretical computer science 8.2 (1979): 189-201.
+
+\bibitem{Arora09} Arora, Sanjeev, and Boaz Barak. Computational complexity: a modern approach. Cambridge University Press, 2009.
+
+\bibitem{Fenner94} Fenner, Stephen A., Lance J. Fortnow, and Stuart A. Kurtz. "Gap-definable counting classes." Journal of Computer and System Sciences 48.1 (1994): 116-148.
+
+\bibitem{Fortnow97} Fortnow, Lance. "Counting complexity." Complexity theory retrospective II (1997): 81-107.
+
+\bibitem{Papadim03} Papadimitriou, Christos H. Computational complexity. John Wiley and Sons Ltd., 2003.
+
+\bibitem{Babai91} Babai, László, and Lance Fortnow. "Arithmetization: A new method in structural complexity theory." Computational Complexity 1.1 (1991): 41-66.
+
+\end{thebibliography}
+
+\end{document}
