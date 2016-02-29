@@ -56,6 +56,9 @@
 \newtheorem{property}{Propriedade}
 \newtheorem{proposition}{Proposição}
 
+\newenvironment{example}[1][Exemplo]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+
 \numberwithin{equation}{subsection}
 \numberwithin{figure}{subsection}
 \numberwithin{table}{subsection}
@@ -63,6 +66,16 @@
 \numberwithin{theorem}{subsection}
 \numberwithin{property}{subsection}
 \numberwithin{proposition}{subsection}
+%\numberwithin{example}{subsection}
+
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+\numberwithin{definition}{section}
+\numberwithin{theorem}{section}
+\numberwithin{property}{section}
+\numberwithin{proposition}{section}
+%\numberwithin{example}{section}
 
 
 % Default fixed font does not support bold face
@@ -136,9 +149,54 @@ showstringspaces=false            %
 %----------------------------------------------------------------------------------------
 
 \pagebreak
-\section{Modelos Probabilísticos}
+\section{Introdução}
+
+Precisamos
+
+
+
 \section{Lógica Proposicional Generalizada}
+
+Uma ferramenta simples para representar eventos é a Lógica Proposicional (LP). Na LP, usamos variáveis binárias, ou proposicionais, e conectivos lógicos para formar sentenças. Estas sentenças representam eventos sobre algum domínio de conhecimento. Veja o exemplo seguinte.
+
+\begin{example} Considere as seguintes variáveis binárias e o que cada uma representa: 
+\begin{itemize}
+  \setlength\itemsep{1pt}
+  \item[] \emph{Chuva} indica se choveu ou não.
+  \item[] \emph{Capa} indica se Aline levou sua capa de chuva ou não.
+  \item[] \emph{Molhada} indica se Aline se molhou ou não.
+\end{itemize}
+
+Na Tabela~\ref{table:eventos_em_lp}, temos a descrição de um evento em português e, à direita, como sentença da Lógica Proposicional:
+
+\FloatBarrier
+\begin{table}[]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+Não choveu.                        & $ (\neg \emph{Choveu}).$                       \\ \hline
+Choveu e Aline se molhou.          & $ (\emph{Choveu} \land \emph{Molhada}).$       \\ \hline
+Ou choveu, ou Aline não se molhou. & $ (\emph{Choveu} \lor (\neg \emph{Molhada})).$ \\ \hline
+Choveu e Aline não levou capa.     & $ (\emph{Choveu} \land (\neg \emph{Capa})).$   \\ \hline
+\end{tabular}
+\caption{Eventos escritos em LP}
+\label{table:eventos_em_lp}
+\end{table}
+\end{example}
+
+
 \section{Cálculo de Probabilidades}
+
+A Lógica Proposicional Generalizada formaliza a construção de eventos. Agora queremos 
+
+$$
+  \P(\phi) = \sum_{\nu \models \phi} \P(\nu)
+$$
+
+\section{PyrobLogic}
+
+Escrevi um módulo em Python para representar modelos probabilísticos e resolver consultas sobre eventos descritos em Lógica Proposicional Generalizada.   
+
 
 \begin{python}
 class Teste:
