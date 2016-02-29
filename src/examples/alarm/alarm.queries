@@ -1,0 +1,4 @@
+prob (not(Sensor2=0)).
+prob (Sensor1=0).
+prob (Temp=0).
+prob ((Temp=1) or ((Sensor1=1) and (Sensor2=0))).

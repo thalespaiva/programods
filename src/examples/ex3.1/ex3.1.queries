@@ -1,0 +1,12 @@
+[Item A]
+prob (A=true) .
+prob (B=true) .
+prob (C=true) .
+
+[Item C]
+cond (A=true) | (C=true).
+cond (B=true) | (C=true).
+
+[Item D]
+indep (A=true) , (C=true)?
+indep (B=true) , (C=true)?

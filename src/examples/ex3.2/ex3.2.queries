@@ -1,0 +1,6 @@
+[Item A]
+prob ((A=true) or (B=true)).
+
+[Item C]
+cond (A=true) | ((A=true) or (B=true)).
+cond (B=true) | ((A=true) or (B=true)).

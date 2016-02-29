@@ -1,0 +1,5 @@
+[Item A]
+cond (C2=t) | (C1=h).
+
+[Item B]
+cond ((C1=h) and (C2=h)) | ((C1=h) or (C2=h)).
