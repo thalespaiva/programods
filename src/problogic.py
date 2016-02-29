@@ -1,9 +1,10 @@
+#!/usr/bin/python3
 
 class Variable:
 
-    def __init__(self, name, dimension):
+    def __init__(self, name, cardinality):
         self.name = name
-        self.dimension = dimension
+        self.cardinality = cardinality
 
     def get_valuation(variables, values):
         return dict(zip([var.name for var in variables], values))
@@ -15,11 +16,7 @@ class Variable:
 class Distribution:
 
     def __init__(self, variables, probabilities):
-        """ {
-                (0,0,0): 0.75,
-                (0,0,1): 0.25,
-            }
-        """
+        # { (0,0,0): 0.75, (0,0,1): 0.25, }
         self.variables = variables  # tuple
         self.probabilities = probabilities  # dict
 
@@ -31,7 +28,7 @@ class Distribution:
 
         var_regex = re.compile(r'var *([a-zA-Z0-9]*) */ *([0-9])*')
 
-        str_varvals_regex = r' *(\([^, ] *(?:,[^, ] *)*\)) *'
+        str_varvals_regex = r' *(\([^,]*(?:,[^,]*)*\)) *'
         str_probvals_regex = r' *([0-9]\.?(?:[0-9]*))'
         prob_regex = re.compile(str_varvals_regex + ':' + str_probvals_regex)
 
@@ -52,7 +49,6 @@ class Distribution:
                 if line.startswith('.'):
                     reading_dist_flag = False
                     continue
-
                 str_var_values, str_prob = re.findall(prob_regex, line)[0]
                 var_values = str_var_values[1:-1].split(',')
                 key = tuple([v.strip() for v in var_values])
@@ -70,22 +66,9 @@ class Distribution:
         for values, probability in self.probabilities.items():
             valuation = Variable.get_valuation(self.variables, values)
             if expression.evaluate(valuation):
-                print(valuation)
                 total_probability += probability
 
         return total_probability
-
-    # def get_conditionate_by_fixing_valuation(self, fixed_valuation):
-    #     new_variables
-
-    #     for values, probability in self.probability.items():
-    #         for var, value in fixed_valuation.items():
-    #             index = self.variables.index(var)
-    #             if self.values[index] != value:
-    #                 break
-
-    #         else:
-    #             break
 
 
 class Expression:
@@ -131,10 +114,8 @@ class Expression:
 
         elif sent_type == Expression.ASSERT_SENT:
             if valuation[sent_elements[0]] == sent_elements[1]:
-                print(sent_elements, 'T')
                 return True
             else:
-                print(sent_elements, 'F')
                 return False
 
     def _evaluate_tree(expression_tree, val):
@@ -154,10 +135,8 @@ class Expression:
 
         elif sent_type == Expression.ASSERT_SENT:
             if val[sent_elements[0]] == sent_elements[1]:
-                print(sent_elements, 'T')
                 return True
             else:
-                print(sent_elements, 'F')
                 return False
 
     def evaluate(self, valuation):
@@ -264,19 +243,45 @@ class ExpressionTree:
 
         return rec__str__(self, n_spaces)
 
-sent = "((Sensore=0) or (Sensor2=3))"
-e1 = Expression("((not((X=3) or ((Y=3) and (not(Z=3))))) and (W=3))")
-e2 = Expression("((Y=3) and (not(Z=3)))")
-e3 = Expression("((X=3) or ((Y=3) and (Z=4)))")
-e9 = Expression("((X=3) or (Y=4))")
-e4 = Expression("(not((X=3) or ((Y=3) and (not(Z=3)))))")
 
-valuation = {'X': '2', 'Y': '3', 'Z': '3', 'W': '3'}
+if __name__ == "__main__":
+    import sys
+    import re
 
-e5 = Expression("((not(S=1)) or (T=3))")
-e6 = Expression("((not(S=0)) and (T=0))")
+    if len(sys.argv) != 3:
+        print("Usage: %s <model_file> <queries_file>" % sys.argv[0])
+        sys.exit(1)
 
-e1.get_stack()
+    model_file_name = sys.argv[1]
+    queries_file_name = sys.argv[2]
 
-d = Distribution.init_from_file('examples/alarm.model')
-d.query_probability('((Temp=1) or ((Sensor1=1) and (Sensor2=0)))')
+    model = Distribution.init_from_file(model_file_name)
+    queries_file = open(queries_file_name, 'r')
+
+    query_regex = re.compile(r'query([^\.]*)\.')
+    for line in queries_file:
+        line = line.strip()
+
+        if line.startswith('query'):
+            query = re.findall(query_regex, line)[0]
+            query = query.strip()
+
+            print(' %.5f = Prob( %s )' % (model.query_probability(query),
+                                          query))
+
+# sent = "((Sensore=0) or (Sensor2=3))"
+# e1 = Expression("((not((X=3) or ((Y=3) and (not(Z=3))))) and (W=3))")
+# e2 = Expression("((Y=3) and (not(Z=3)))")
+# e3 = Expression("((X=3) or ((Y=3) and (Z=4)))")
+# e9 = Expression("((X=3) or (Y=4))")
+# e4 = Expression("(not((X=3) or ((Y=3) and (not(Z=3)))))")
+
+# valuation = {'X': '2', 'Y': '3', 'Z': '3', 'W': '3'}
+
+# e5 = Expression("((not(S=1)) or (T=3))")
+# e6 = Expression("((not(S=0)) and (T=0))")
+
+# e1.get_stack()
+
+# d = Distribution.init_from_file('examples/alarm.model')
+# d.query_probability('((Temp=1) or ((Sensor1=1) and (Sensor2=0)))')
