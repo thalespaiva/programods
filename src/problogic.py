@@ -85,9 +85,23 @@ class Distribution:
 
         return prob_intersection/prob_condition
 
-    def query_cond_independence(this, that, cond):
-        inter_cond = '(' + expression + ' and ' + condition + ')'
-        prob_cond = self.query_conditional_probability()
+    def query_cond_independence(self, this, that, cond):
+        inter_cond = '(' + that + ' and ' + cond + ')'
+
+        prob_cond = self.query_conditional_probability(this, cond)
+        prob_inter_cond = self.query_conditional_probability(this, inter_cond)
+
+        return prob_cond == prob_inter_cond
+
+    def dump_cond(self, str_cond):
+        cond = Expression(str_cond)
+
+        total_probability = self.query_probability(cond)
+        print('Cond Dump P( . | ' + str_cond + ' )')
+        for values, prob in self.probabilities.items():
+            valuation = Variable.get_valuation(self.variables, values)
+            if cond.evaluate(valuation):
+                print("  %-30s : %.5f" % (values, prob/total_probability))
 
 
 class Expression:
@@ -161,8 +175,9 @@ class Expression:
         bop_sent.setParseAction(_push_with_sent_type(Expression.BINOP_SENT))
         assrt_sent.setParseAction(_push_with_sent_type(Expression.ASSERT_SENT))
         not_sent.setParseAction(_push_with_sent_type(Expression.NOT_SENT))
+        par_sent = lpar + sent + rpar
 
-        sent << (bop_sent | assrt_sent | not_sent)
+        sent << (bop_sent | assrt_sent | not_sent | par_sent)
         sent.parseString(self.str_expression)
 
         return expression_stack
@@ -227,12 +242,15 @@ class ExpressionTree:
 
 class Query:
 
-    PROB_TYPE = 'prob'
-    COND_TYPE = 'cond'
-    INDEP_TYPE = 'indep'
-    CONDIND_TYPE = 'condind'
+    DUMP_COND_TYPE = 'dump_cond '
+    PROB_TYPE = 'prob '
+    COND_TYPE = 'cond '
+    INDEP_TYPE = 'indep '
+    CONDIND_TYPE = 'condind '
 
     import re
+
+    dump_cond_regex = re.compile(DUMP_COND_TYPE + r'([^\.]*)\.')
 
     prob_regex = re.compile(PROB_TYPE + r'([^\.]*)\.')
     cond_regex = re.compile(COND_TYPE + r'([^\|]*)\|([^\.]*)\.')
@@ -259,12 +277,18 @@ class Query:
         indep = model.query_independence(this, that)
         print(' %-7r = is %s indep %s ?' % (indep, this, that))
 
-    def resolve_condindep_query(line, model):
-        this, that, cond = re.findall(Query.indep_regex, line)[0]
+    def resolve_condind_query(line, model):
+        this, that, cond = re.findall(Query.condind_regex, line)[0]
         this, that, cond = this.strip(), that.strip(), cond.strip()
 
         indep = model.query_cond_independence(this, that, cond)
         print(' %-7r = is %s indep %s | %s ?' % (indep, this, that, cond))
+
+    def resolve_dump_cond(line, model):
+        cond = re.findall(Query.dump_cond_regex, line)[0]
+        cond = cond.strip()
+
+        model.dump_cond(cond)
 
     def resolve_str_query(line, model):
         if line.startswith(Query.PROB_TYPE):
@@ -274,8 +298,9 @@ class Query:
         elif line.startswith(Query.INDEP_TYPE):
             return Query.resolve_indep_query(line, model)
         elif line.startswith(Query.CONDIND_TYPE):
-            return Query.resolve_condindep_query(line, model)
-
+            return Query.resolve_condind_query(line, model)
+        elif line.startswith(Query.DUMP_COND_TYPE):
+            return Query.resolve_dump_cond(line, model)
 
 if __name__ == "__main__":
     import sys
