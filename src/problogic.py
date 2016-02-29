@@ -70,6 +70,15 @@ class Distribution:
 
         return total_probability
 
+    def query_conditional_probability(self, expression, condition):
+        # Gaaaambiarra !
+        exp_and_cond = '(' + expression + ' and ' + condition + ')'
+
+        prob_intersection = self.query_probability(exp_and_cond)
+        prob_condition = self.query_probability(condition)
+
+        return prob_intersection/prob_condition
+
 
 class Expression:
 
@@ -259,6 +268,8 @@ if __name__ == "__main__":
     queries_file = open(queries_file_name, 'r')
 
     query_regex = re.compile(r'query([^\.]*)\.')
+    cond_query_regex = re.compile(r'cond([^\|]*)\|([^\.]*)\.')
+    
     for line in queries_file:
         line = line.strip()
 
@@ -269,19 +280,9 @@ if __name__ == "__main__":
             print(' %.5f = Prob( %s )' % (model.query_probability(query),
                                           query))
 
-# sent = "((Sensore=0) or (Sensor2=3))"
-# e1 = Expression("((not((X=3) or ((Y=3) and (not(Z=3))))) and (W=3))")
-# e2 = Expression("((Y=3) and (not(Z=3)))")
-# e3 = Expression("((X=3) or ((Y=3) and (Z=4)))")
-# e9 = Expression("((X=3) or (Y=4))")
-# e4 = Expression("(not((X=3) or ((Y=3) and (not(Z=3)))))")
+        if line.startswith('cond'):
+            query, cond = re.findall(cond_query_regex, line)[0]
+            query, cond = query.strip(), cond.strip()
 
-# valuation = {'X': '2', 'Y': '3', 'Z': '3', 'W': '3'}
-
-# e5 = Expression("((not(S=1)) or (T=3))")
-# e6 = Expression("((not(S=0)) and (T=0))")
-
-# e1.get_stack()
-
-# d = Distribution.init_from_file('examples/alarm.model')
-# d.query_probability('((Temp=1) or ((Sensor1=1) and (Sensor2=0)))')
+            prob = model.query_conditional_probability(query, cond)
+            print(' %.5f = Prob( %s | %s )' % (prob, query, cond))
