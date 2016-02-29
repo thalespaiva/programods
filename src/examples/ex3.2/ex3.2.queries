@@ -1,6 +1,14 @@
 [Item A]
 prob ((A=true) or (B=true)).
+prob ((B=true)).
+
+[Item B]
+dump_cond ((A=true) or (B=true)).
+dump_cond ((C=true) and ((A=true) or (B=true))).
 
 [Item C]
 cond (A=true) | ((A=true) or (B=true)).
 cond (B=true) | ((A=true) or (B=true)).
+
+[Item D]
+condind (B=true), (C=true) | ((A=true) or (B=true))?

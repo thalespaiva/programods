@@ -1,7 +1,10 @@
 [Item A]
-prob (A=true) .
-prob (B=true) .
-prob (C=true) .
+prob (A=true).
+prob (B=true).
+prob (C=true).
+
+[Item B]
+dump_cond (C=true).
 
 [Item C]
 cond (A=true) | (C=true).
