@@ -58,6 +58,8 @@
 
 \newenvironment{example}[1][Exemplo]{\begin{trivlist}
 \item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+\newenvironment{exerc}[1][Exercício]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
 
 \numberwithin{equation}{subsection}
 \numberwithin{figure}{subsection}
@@ -133,7 +135,7 @@ showstringspaces=false            %
 
 \renewcommand{\P}{\mathbb{P}}
 \renewcommand{\bar}[1]{\overline{#1}}
-
+\newcommand{\set}[1]{\mathcal{#1}}
 
 \begin{document}
 
@@ -149,78 +151,280 @@ showstringspaces=false            %
 %----------------------------------------------------------------------------------------
 
 \pagebreak
-\section{Introdução}
-
-Precisamos
-
-
-
 \section{Lógica Proposicional Generalizada}
 
-Uma ferramenta simples para representar eventos é a Lógica Proposicional (LP). Na LP, usamos variáveis binárias, ou proposicionais, e conectivos lógicos para formar sentenças. Estas sentenças representam eventos sobre algum domínio de conhecimento. Veja o exemplo seguinte.
+Queremos representar eventos sobre os quais iremos atribuir valores de crença. Uma ferramenta simples para representar eventos é a Lógica Proposicional (LP). Na LP, usamos variáveis binárias, ou proposicionais, e conectivos lógicos para formar sentenças. Estas sentenças representam eventos sobre algum domínio de conhecimento. Veja o exemplo seguinte.
 
 \begin{example} Considere as seguintes variáveis binárias e o que cada uma representa: 
 \begin{itemize}
-  \setlength\itemsep{1pt}
+  \setlength\itemsep{0pt}
   \item[] \emph{Chuva} indica se choveu ou não.
   \item[] \emph{Capa} indica se Aline levou sua capa de chuva ou não.
   \item[] \emph{Molhada} indica se Aline se molhou ou não.
 \end{itemize}
 
-Na Tabela~\ref{table:eventos_em_lp}, temos a descrição de um evento em português e, à direita, como sentença da Lógica Proposicional:
-
 \FloatBarrier
-\begin{table}[]
-\centering
-\begin{tabular}{|l|l|}
-\hline
-Não choveu.                        & $ (\neg \emph{Choveu}).$                       \\ \hline
-Choveu e Aline se molhou.          & $ (\emph{Choveu} \land \emph{Molhada}).$       \\ \hline
-Ou choveu, ou Aline não se molhou. & $ (\emph{Choveu} \lor (\neg \emph{Molhada})).$ \\ \hline
-Choveu e Aline não levou capa.     & $ (\emph{Choveu} \land (\neg \emph{Capa})).$   \\ \hline
-\end{tabular}
-\caption{Eventos escritos em LP}
-\label{table:eventos_em_lp}
-\end{table}
+Abaixo temos a descrição de um evento em português e, à direita, como sentença da Lógica Proposicional:
+
+\begin{itemize}
+\setlength\itemsep{0pt}
+\item[] Não choveu.                         $ (\neg \emph{Choveu}).$                       
+\item[] Choveu e Aline se molhou.           $ (\emph{Choveu} \land \emph{Molhada}).$       
+\item[] Ou choveu, ou Aline não se molhou.  $ (\emph{Choveu} \lor (\neg \emph{Molhada})).$ 
+\item[] Choveu e Aline não levou capa.      $ (\emph{Choveu} \land (\neg \emph{Capa})).$   
+\end{itemize}
 \end{example}
 
+Apesar de elegante e simples de trabalhar, como muitos eventos interessantes ao tratar de incertezas pedem naturalmente variáveis multinomiais, a LP pode não ser suficiente. Assim, utilizaremos a generalização da Lógica Proposicional para aceitar variáveis multinominais.
+
+Fixe $X_1, \dotsc, X_n$, um número finito de variáveis de domínios $dom(X_1), \dotsc, dom(X_n)$. Na Lógica Proposicional Generalizada (LPG), uma linguagem $\set{L}$ é definida recursivamente sobre as variáveis $X_i$ da seguinte forma:
+\begin{enumerate}
+\item Para toda variável $X$ com $x \in dom(X)$, $(X=x)$ é uma sentença pertencente a $\set{L}(X_1, \dotsc, X_n)$ e é chamada instanciação de variável.
+\item Se $\phi$ é uma sentença de $\set{L}(X_1, \dotsc, X_n)$, então $(\neg \phi)$ também é.
+\item Se $\phi$ e $\psi$ são sentenças de $\set{L}(X_1, \dotsc, X_n)$, então $(\phi \land \psi)$ e $(\phi \lor \psi)$ também são.
+\item Nada mais é uma sentença de $\set{L}(X_1, \dotsc, X_n)$.
+\end{enumerate}
+
+Note que aqui o uso dos parêntesis foi definido de forma um pouco diferente de como é no livro do Darwiche. Isso pois usaremos esta definição na gramática de expressões no programa em Python que resolve os exercícios.
+
+Uma valoração $\nu$ é uma função que mapeia variáveis a valores de seu domínio. É crucial no cálculo de probabilidades pois definem eventos atômicos, chamados mundos. Dizemos que uma valoração $\nu$ satisfaz uma sentença $\phi$, denotado por $\nu \models \phi$, se o par se enquadra recursivamente nos casos abaixo:  
+\begin{enumerate}
+\item $\nu \models X=x$ se e somente se $\nu(X)=x$.
+\item $\nu \models \neg \phi$ se e somente se $\nu \not\models \phi$.
+\item $\nu \models \phi \wedge \psi$ se e somente se
+  $\nu \models \phi$ e $\nu \models \psi$.
+\item $\nu \models \phi \vee \psi$ se e somente se
+  $\nu \models \phi$ ou $\nu \models \psi$.
+\end{enumerate}
 
 \section{Cálculo de Probabilidades}
 
-A Lógica Proposicional Generalizada formaliza a construção de eventos. Agora queremos 
-
+Um modelo probabilístico é um par $(\set{L}(X_1, \dotsc, X_n), \P)$ em que $\set{L}$ é LGP sobre as variáveis $X_1, \dotsc, X_n$, e $\P$ é uma função de probabilidade sobre as sentenças $\phi$ de $\set{L}$, que segue os axiomas de Kolmogorov, e é definida como abaixo:
 $$
   \P(\phi) = \sum_{\nu \models \phi} \P(\nu)
 $$
 
-\section{PyrobLogic}
+Alguns exercícios sobre a definição de $\P$ são (resolverei pelos axiomas de Kolmogorov):
+\begin{exerc} \emph{Para qualquer evento $\alpha$, $\P(\alpha) = 1 - \P(\alpha^c)$.}
 
-Escrevi um módulo em Python para representar modelos probabilísticos e resolver consultas sobre eventos descritos em Lógica Proposicional Generalizada.   
+  Como $\alpha \cap \alpha^c = \emptyset$:
+  
+  $$
+  1 = \P(\Omega) = \P(\alpha \cup \alpha^c) =  \P(\alpha) + \P(\alpha^c) \Rightarrow \P(\alpha) = 1 - \P(\alpha^c) \forall \alpha.
+  $$
 
+\end{exerc}
+
+\begin{exerc} \emph{$\P(\emptyset) = 0 $.}
+
+  $$
+  \P(\emptyset) = 1 - \P(\emptyset^c) = 1 - \P(\Omega) = 1.
+  $$
+
+\end{exerc}
+
+\begin{exerc} \emph{Se $\alpha \subseteq \beta$ eventos, então $\P(\alpha) \leq \P(\beta)$.}
+  
+  Seja $\gamma = \beta \setminus \alpha$. Por definição $\P(\gamma) \geq 0$.
+  $$
+  \P(\beta) = \P(\alpha \cup \gamma) = \P(\alpha) + \P(\gamma) \geq \P(\alpha).
+  $$
+
+\end{exerc}
+
+\begin{exerc} \emph{Para qualquer evento $\alpha$, $0 \leq \P(\alpha) \leq 1$.}
+  $\P(\alpha) \geq 0 $ por definição (Kolmogorov). 
+  $$
+  \alpha \subseteq \Omega \Rightarrow P(\alpha) \leq P(\Omega) = 1.
+  $$
+
+\end{exerc} 
+
+\begin{exerc} \emph{Para quaisquer eventos $\alpha, \beta$, $\P(\alpha \cup \beta) = \P(\alpha) + \P(\beta) - \P(\alpha \cap \beta)$.}
+  
+  $$
+  \P(\alpha) + \P(\beta) = \P(\alpha \cap \beta) + \P(\alpha \setminus \beta) + \P(\alpha \cap \beta) + \P(\beta \setminus \alpha).
+  $$
+  Mas como $\alpha \setminus \beta, \beta \setminus \alpha$, e $ \alpha \cap \beta $ são disjuntos e sua união é $\alpha \cup \beta$:
+  $$
+  \P(\alpha) + \P(\beta) = \P(\alpha \cup \beta) + \P(\alpha \cap \beta).
+  $$
+
+\end{exerc}
+
+\begin{exerc} \emph{Se $\P(\alpha) = 1$, então $\P(\beta) = \P(\alpha \cap \beta)$.}
+
+  Pelo ex. anterior:
+  $$
+  \P(\alpha \cup \beta) = \P(\alpha) + \P(\beta) - \P(\alpha \cap \beta).
+  $$
+  Mas $1 \leq \P(\alpha \cup \beta) \geq \P(\alpha) = 1$, então:
+  $$
+  1 = 1 + \P(\beta) - \P(\alpha \cap \beta) \Rightarrow \P(\beta) = \P(\alpha \cap \beta).
+  $$
+
+\end{exerc} 
+
+
+\pagebreak  
+\section{ProbLogic em Python}
+
+\subsection{Resolução dos Exercícios}
+
+Foram pedidos os exercícios 3.1, 3.2, e 3.3 do livro do Darwiche. Achei que um modo elegante de resolver este exercício seria um programa que aceitasse a seguinte linha de comando:
+\verb|./problogic.py <model_file> <queries_file>|.
+
+Nesta linha de comando, \verb|model_file| é um arquivo contendo a descrição de um modelo probabilístico, com as variáveis e distribuição de probabilidades para cada valoração. E \verb|queries_file|, um arquivo contendo as consultas ao modelo. 
+
+Assim, para cada exercício, há uma pasta com o modelo do enunciado e as consultas pedidas por cada item. Como exemplo, considere o arquivo de modelo para o exercício 1, em \verb|examples/ex3.1/ex3.1.model|:
+\begin{verbatim}
+model
+
+var A/2.
+var B/2.
+var C/2.
+
+dist
+(true, true, true)      : 0.075 
+(true, true, false)     : 0.050
+(true, false, true)     : 0.225
+(true, false, false)    : 0.150
+(false, true, true)     : 0.025
+(false, true, false)    : 0.100
+(false, false, true)    : 0.075
+(false, false, false)   : 0.300
+.
+\end{verbatim}
+
+Note que as valorações da distribuição devem ser dadas na mesma ordem em que as variáveis foram apresentadas. 
+
+Para exemplificar as consultas, observe o arquivo \verb|examples/ex3.1/ex3.1.queries|:
+\begin{verbatim}
+[Item A]
+prob (A=true).
+prob (B=true).
+prob (C=true).
+
+[Item B]
+dump_cond (C=true).
+
+[Item C]
+cond (A=true) | (C=true).
+cond (B=true) | (C=true).
+
+[Item D]
+indep (A=true) , (C=true)?
+indep (B=true) , (C=true)?
+\end{verbatim}
+
+Note que cada fórmula (evento) deve conter todos os parêntesis. Veja abaixo o significado de cada palavra-chave de consulta:
+\begin{description}
+  \setlength\itemsep{0em}
+  \item \verb|prob|: Consulta a probabilidade de um evento \\ (e.g. $\P(A=true)$).
+  \item \verb|dump_cond|: Consulta sobre uma distribuição condicional \\ (e.g $\P(.| C=true)$).
+  \item \verb|cond|: Consulta sobre uma probabilidade condicional \\ (e.g. $\P((A=true) | (C=true))$).
+  \item \verb|indep|: Consulta sobre a independência entre dois eventos \\ (e.g. $(A=True) \bot (C=True)$?). 
+  \item \verb|condind| : Consulta sobre a independência condicional entre dois eventos \\ (e.g.  $(A=true) \bot (C=true) | (B=false)$?).
+\end{description}
+
+
+Um exemplo de execução na minha máquina é dado abaixo:
+\begin{verbatim}
+./problogic.py examples/ex3.1/ex3.1.model examples/ex3.1/ex3.1.queries 
+[Item A]
+ 0.50000 = Prob( (A=true) )
+ 0.25000 = Prob( (B=true) )
+ 0.40000 = Prob( (C=true) )
+[Item B]
+Cond Dump P( . | (C=true) )
+  ('false', 'false', 'true')     : 0.18750
+  ('true', 'true', 'true')       : 0.18750
+  ('true', 'false', 'true')      : 0.56250
+  ('false', 'true', 'true')      : 0.06250
+[Item C]
+ 0.75000 = Prob( (A=true) | (C=true) )
+ 0.25000 = Prob( (B=true) | (C=true) )
+[Item D]
+ False   = is (A=true) indep (C=true) ?
+ False   = is (B=true) indep (C=true) ?
+\end{verbatim}
+
+Note que pode haver divergências quanto à ordem em que as valorações no dump aparecem, pois usei um dicionário para guardar as informações. Claro que as probabilidades associadas não mudam.
+
+A saída dos outros exercícios é dada abaixo.
+
+\begin{verbatim}
+./problogic.py examples/ex3.2/ex3.2.model examples/ex3.2/ex3.2.queries
+[Item A]
+ 0.62500 = Prob( ((A=true) or (B=true)) )
+ 0.25000 = Prob( ((B=true)) )
+[Item B]
+Cond Dump P( . | ((A=true) or (B=true)) )
+  ('false', 'true', 'true')      : 0.04000
+  ('true', 'true', 'true')       : 0.12000
+  ('true', 'false', 'true')      : 0.36000
+  ('true', 'false', 'false')     : 0.24000
+  ('true', 'true', 'false')      : 0.08000
+  ('false', 'true', 'false')     : 0.16000
+Cond Dump P( . | ((C=true) and ((A=true) or (B=true))) )
+  ('false', 'true', 'true')      : 0.07692
+  ('true', 'true', 'true')       : 0.23077
+  ('true', 'false', 'true')      : 0.69231
+[Item C]
+ 0.80000 = Prob( (A=true) | ((A=true) or (B=true)) )
+ 0.40000 = Prob( (B=true) | ((A=true) or (B=true)) )
+[Item D]
+ False   = is (B=true) indep (C=true) | ((A=true) or (B=true)) ?
+\end{verbatim}
+
+
+\subsection{Detalhes de Implementação}
+Escrevi um módulo em Python para representar modelos probabilísticos e resolver consultas sobre eventos descritos em Lógica Proposicional Generalizada. Está dividido nas seguintes classes:
 
 \begin{python}
-class Teste:
-    pass
+class Variable
+  def __init__(self, name, cardinality)
+  def get_valuation(variables, values)
+  def __str__(self)
+
+class Distribution
+  def __init__(self, variables, probabilities)
+  def init_from_file(input_file_path)
+  def query_probability(self, expression)
+  def query_independence(self, this, that)
+  def query_conditional_probability(self, expression, condition)
+  def query_cond_independence(self, this, that, cond)
+  def dump_cond(self, str_cond)
+  
+class Expression
+  def __init__(self, str_expression)
+  def _evaluate_tree(expression_tree, val)
+  def evaluate(self, valuation)
+  def get_stack(self)
+  def get_tree(self)
+  
+class ExpressionTree
+  def __init__(self, sentence)
+  def __getitem__(self, key)
+  def push_child(self, child)
+  def pop_child(self)
+  def __str__(self)
+
+class Query
+  def resolve_prob_query(line, model)
+  def resolve_cond_query(line, model)
+  def resolve_indep_query(line, model)
+  def resolve_dump_cond(line, model)
+  def resolve_str_query(line, model)
+  
 \end{python}
 
 
+
+As análises léxica e sintática das expressões são feita usando o módulo \verb|pyparsing.py|, similar ao uso do Lex+Bison, porém utilizando somente a sintaxe de Python. O método que contém essas análises é \verb|Expression.get_stack()|. Após gerar a pilha da expressão, constroi-se a árovore da expressão, que será usada para avaliar valorações. 
+
+
 %----------------------------------------------------------------------------------------
-\begin{thebibliography}{1}
 
-\bibitem{Val79a} Valiant, Leslie G. "The complexity of enumeration and reliability problems." SIAM Journal on Computing 8.3 (1979): 410-421.
-
-\bibitem{Val79b} Valiant, Leslie G. "The complexity of computing the permanent." Theoretical computer science 8.2 (1979): 189-201.
-
-\bibitem{Arora09} Arora, Sanjeev, and Boaz Barak. Computational complexity: a modern approach. Cambridge University Press, 2009.
-
-\bibitem{Fenner94} Fenner, Stephen A., Lance J. Fortnow, and Stuart A. Kurtz. "Gap-definable counting classes." Journal of Computer and System Sciences 48.1 (1994): 116-148.
-
-\bibitem{Fortnow97} Fortnow, Lance. "Counting complexity." Complexity theory retrospective II (1997): 81-107.
-
-\bibitem{Papadim03} Papadimitriou, Christos H. Computational complexity. John Wiley and Sons Ltd., 2003.
-
-\bibitem{Babai91} Babai, László, and Lance Fortnow. "Arithmetization: A new method in structural complexity theory." Computational Complexity 1.1 (1991): 41-66.
-
-\end{thebibliography}
 
 \end{document}
