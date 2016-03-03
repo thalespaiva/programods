@@ -1,0 +1,17 @@
+Thales Paiva
+
+[+] Linhas de comando para resolver os exercícios.
+    Todas sob o diretório /src.
+    Assumindo que o Python3 está em /usr/bin/python3
+
+    ex.3.1:
+    ./problogic.py examples/ex3.1/ex3.1.model examples/ex3.1/ex3.1.queries
+
+    ex.3.2:
+    ./problogic.py examples/ex3.2/ex3.2.model examples/ex3.2/ex3.2.queries
+
+    ex.3.3:
+    ./problogic.py examples/ex3.3/ex3.3.model examples/ex3.3/ex3.3.queries
+
+[+] Relatório em:
+    /relatorio/relatorio.pdf
