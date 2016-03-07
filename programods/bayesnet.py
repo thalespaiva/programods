@@ -237,6 +237,9 @@ class BayesNet:
         self.probs = probs
         self.properties = properties
 
+    def parent_nodes(self, node_name):
+        return [parent.name for parent in self.probs[node_name].cond_vars]
+
     def init_from_bif_file(bif_file_path):
         data_list = BIF_Parser.parse(bif_file_path)
 
@@ -260,6 +263,18 @@ class BayesNet:
                 probs[prob.main_var.name] = prob
 
         return BayesNet(network_name, nodes, probs, properties)
+
+    def draw(self, file_path):
+        import graphviz as gv
+
+        network = gv.Digraph(format='png')
+        for node in self.nodes:
+            network.node(node)
+
+        for node in self.nodes:
+            for parent in self.parent_nodes(node):
+                network.edge(parent, node)
+        network.render(file_path, view=True)
 
 v = BayesNet.init_from_bif_file('../examples/bayesnet/asia/asia.bif')
 vs = v.nodes
