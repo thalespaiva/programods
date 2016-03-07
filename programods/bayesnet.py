@@ -105,6 +105,7 @@ class BIF_Parser:
 
         network_name = 'None'
         variables = {}
+        probs = []
         for item in data_list:
             item_type = item.pop(0)
             if item_type == BIF_Parser.NET_KEY:
@@ -116,8 +117,9 @@ class BIF_Parser:
                 variables[variable.name] = variable
 
             if item_type == BIF_Parser.PROB_KEY:
-                BIF_Parser._get_probability_from_data_item(item, variables)
-        return (network_name, variables)
+                probs.append(BIF_Parser.
+                             _get_probability_from_data_item(item, variables))
+        return (network_name, variables, probs)
 
 
 class Function:
@@ -148,16 +150,32 @@ class Function:
 
     def __mul__(self, function):
         variables_union = list(set(self.variables) | set(function.variables))
-        print('asldk', variables_union)
         product = Function(variables_union)
 
+        var_names = [var.name for var in product.variables]
         for valuation in it.product(*[v.domain for v in product.variables]):
-            var_names = [var.name for var in product.variables]
             var_valuation = dict(zip(var_names, valuation))
             val = self.evaluate(var_valuation)*function.evaluate(var_valuation)
             product.values[valuation] = val
 
         return product
+
+    def __mod__(self, variable):
+        var_name = variable.name
+
+        elim_vars = [v for v in self.variables if v.name != var_name]
+        elim_func = Function(elim_vars)
+
+        elim_var_names = [var.name for var in elim_vars]
+        for elim_valuation in it.product(*[v.domain for v in elim_vars]):
+            var_valuation = dict(zip(elim_var_names, elim_valuation))
+            val_sum = 0
+            for value in variable.domain:
+                var_valuation[var_name] = value
+                val_sum += self.evaluate(var_valuation)
+            elim_func.add_value(elim_valuation, val_sum)
+
+        return elim_func
 
 
 class Probability(Function):
@@ -180,6 +198,9 @@ class Variable:
 
         return "".join(out)
 
+    # def domain_product(*variables):
+    #     domains = []
+    #     return it.product(*var)
 
 class Node:
 
@@ -198,3 +219,7 @@ class BayesNet:
 
     def init_from_bif_file(bif_file_path):
         return BIF_Parser.get_bayesnet_from_file(bif_file_path)
+
+v = BIF_Parser.get_data_from_file('../examples/bayesnet/asia/asia.bif')
+vs = v[1]
+fs = v[2]
