@@ -160,6 +160,22 @@ class Function:
 
         return product
 
+    def __div__(self, function):
+        variables_union = list(set(self.variables) | set(function.variables))
+        division = Function(variables_union)
+
+        var_names = [var.name for var in division.variables]
+        for valuation in it.product(*[v.domain for v in division.variables]):
+            var_valuation = dict(zip(var_names, valuation))
+            if function.evaluate(var_valuation) == 0:
+                val = None
+            else:
+                val = (self.evaluate(var_valuation) /
+                       function.evaluate(var_valuation))
+            division.values[valuation] = val
+
+        return division
+
     def __mod__(self, variable):
         var_name = variable.name
 
