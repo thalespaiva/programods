@@ -337,7 +337,7 @@ class BayesNet:
         return set(nodes) | parent_nodes_set | \
             self.get_ancestors_set(parent_nodes_not_in_nodes_set)
 
-    def get_conjunctive(self, variables_names):
+    def get_joint_distribution(self, variables_names):
         ancestors_set = self.get_ancestors_set(variables_names)
 
         prob = self.probs[ancestors_set.pop()]
@@ -350,6 +350,11 @@ class BayesNet:
                 prob %= var
 
         return prob
+
+    def conjunctive_query(self, valuation):
+        joint_distribution = self.get_joint_distribution(valuation.keys())
+
+        return joint_distribution.evaluate(valuation)
 
 
 if __name__ == "__main__":
