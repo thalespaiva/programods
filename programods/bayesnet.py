@@ -79,7 +79,7 @@ class BIF_Parser:
 
         return Variable(var_name, var_type, var_domain)
 
-    def _get_probability_from_data_item(item, variables):
+    def _get_prob_from_data_item(item, variables):
         vars_info = item.pop(0)
         main_var = variables[vars_info.pop(0)]
         cond_vars = [variables[v] for v in vars_info.pop(0)]
@@ -98,28 +98,28 @@ class BIF_Parser:
                 for valuation, prob in zip(valuations, probs):
                     probability.add_value(tuple(valuation), float(prob))
 
-        return probability
+        return (main_var, probability)
 
-    def get_data_from_file(file_path):
-        data_list = BIF_Parser.parse(file_path)
+    # def get_data_from_file(file_path):
+    #     data_list = BIF_Parser.parse(file_path)
 
-        network_name = 'None'
-        variables = {}
-        probs = []
-        for item in data_list:
-            item_type = item.pop(0)
-            if item_type == BIF_Parser.NET_KEY:
-                network_name = item.pop(0)
-                network_properties = item.pop(0)
+    #     network_name = 'None'
+    #     variables = {}
+    #     probs = []
+    #     for item in data_list:
+    #         item_type = item.pop(0)
+    #         if item_type == BIF_Parser.NET_KEY:
+    #             network_name = item.pop(0)
+    #             network_properties = item.pop(0)
 
-            elif item_type == BIF_Parser.VAR_KEY:
-                variable = BIF_Parser._get_variable_from_data_item(item)
-                variables[variable.name] = variable
+    #         elif item_type == BIF_Parser.VAR_KEY:
+    #             variable = BIF_Parser._get_variable_from_data_item(item)
+    #             variables[variable.name] = variable
 
-            if item_type == BIF_Parser.PROB_KEY:
-                probs.append(BIF_Parser.
-                             _get_probability_from_data_item(item, variables))
-        return (network_name, variables, probs)
+    #         if item_type == BIF_Parser.PROB_KEY:
+    #             probs.append(BIF_Parser.
+    #                          _get_prob_from_data_item(item, variables))
+    #     return (network_name, variables, probs)
 
 
 class Function:
@@ -226,16 +226,36 @@ class Node:
 
 class BayesNet:
 
-    def __init__(self, name):
-        self.variables = variables
-        self.node = None
-
-    def init_empty_net():
-        return BayesNet('None')
+    def __init__(self, name, nodes, probs, properties=None):
+        self.name = name
+        self.nodes = nodes
+        self.probs = probs
+        self.properties = properties
 
     def init_from_bif_file(bif_file_path):
-        return BIF_Parser.get_bayesnet_from_file(bif_file_path)
+        data_list = BIF_Parser.parse(bif_file_path)
 
-v = BIF_Parser.get_data_from_file('../examples/bayesnet/asia/asia.bif')
-vs = v[1]
-fs = v[2]
+        network_name = 'None'
+        nodes = {}  # indexed by variables names
+        probs = {}  # indexed by nodes indexes
+        properties = []
+
+        for item in data_list:
+            item_type = item.pop(0)
+            if item_type == BIF_Parser.NET_KEY:
+                network_name = item.pop(0)
+                properties.append(item.pop(0))
+
+            elif item_type == BIF_Parser.VAR_KEY:
+                variable = BIF_Parser._get_variable_from_data_item(item)
+                nodes[variable.name] = variable
+
+            if item_type == BIF_Parser.PROB_KEY:
+                v, p = BIF_Parser._get_prob_from_data_item(item, nodes)
+                probs[v] = p
+
+        return BayesNet(network_name, nodes, probs, properties)
+
+v = BayesNet.init_from_bif_file('../examples/bayesnet/asia/asia.bif')
+vs = v.nodes
+fs = v.probs
