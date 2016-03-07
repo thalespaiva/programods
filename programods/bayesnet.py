@@ -91,13 +91,13 @@ class BIF_Parser:
             prob_table = probs_info[1]
             domains_list = [main_var.domain] + [v.domain for v in cond_vars]
             for valuation, prob in zip(it.product(*domains_list), prob_table):
-                probability.add_value(tuple(valuation), prob)
+                probability.add_value(tuple(valuation), float(prob))
         else:
             for cond_valuation, probs in probs_info:
                 valuations = [[d] + cond_valuation for d in main_var.domain]
                 for valuation, prob in zip(valuations, probs):
-                    probability.add_value(tuple(valuation), prob)
-        print(probability)
+                    probability.add_value(tuple(valuation), float(prob))
+
         return probability
 
     def get_data_from_file(file_path):
@@ -141,6 +141,25 @@ class Function:
 
         return ''.join(out)
 
+    def evaluate(self, var_valuation):
+        valuation = tuple(var_valuation[v.name] for v in self.variables)
+
+        return self.values[valuation]
+
+    def __mul__(self, function):
+        variables_union = list(set(self.variables) | set(function.variables))
+        print('asldk', variables_union)
+        product = Function(variables_union)
+
+        for valuation in it.product(*[v.domain for v in product.variables]):
+            var_names = [var.name for var in product.variables]
+            var_valuation = dict(zip(var_names, valuation))
+            val = self.evaluate(var_valuation)*function.evaluate(var_valuation)
+            product.values[valuation] = val
+
+        return product
+
+
 class Probability(Function):
     pass
 
@@ -162,14 +181,20 @@ class Variable:
         return "".join(out)
 
 
+class Node:
+
+    def __init__(name, parents):
+        pass
+
+
 class BayesNet:
 
-    def __init__(self, variables):
+    def __init__(self, name):
         self.variables = variables
+        self.node = None
+
+    def init_empty_net():
+        return BayesNet('None')
 
     def init_from_bif_file(bif_file_path):
-        data_list = BIF_Parser.parse(bif_file_path)
-
-        for data in data_list:
-            if data[0] == BIF_Parser.VAR_KEY:
-                data.remove(0)
+        return BIF_Parser.get_bayesnet_from_file(bif_file_path)
