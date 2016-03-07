@@ -84,7 +84,7 @@ class BIF_Parser:
         main_var = variables[vars_info.pop(0)]
         cond_vars = [variables[v] for v in vars_info.pop(0)]
 
-        probability = Function([main_var] + cond_vars)
+        probability = Probability(main_var, cond_vars)
 
         probs_info = item.pop(0)
         if probs_info[0] == BIF_Parser.TABVALS_KEY:
@@ -98,7 +98,7 @@ class BIF_Parser:
                 for valuation, prob in zip(valuations, probs):
                     probability.add_value(tuple(valuation), float(prob))
 
-        return (main_var, probability)
+        return probability
 
     # def get_data_from_file(file_path):
     #     data_list = BIF_Parser.parse(file_path)
@@ -195,7 +195,11 @@ class Function:
 
 
 class Probability(Function):
-    pass
+
+    def __init__(self, main_var, cond_vars):
+        self.main_var = main_var
+        self.cond_vars = cond_vars
+        super().__init__([main_var] + cond_vars)
 
 
 class Variable:
@@ -217,6 +221,7 @@ class Variable:
     # def domain_product(*variables):
     #     domains = []
     #     return it.product(*var)
+
 
 class Node:
 
@@ -251,8 +256,8 @@ class BayesNet:
                 nodes[variable.name] = variable
 
             if item_type == BIF_Parser.PROB_KEY:
-                v, p = BIF_Parser._get_prob_from_data_item(item, nodes)
-                probs[v] = p
+                prob = BIF_Parser._get_prob_from_data_item(item, nodes)
+                probs[prob.main_var.name] = prob
 
         return BayesNet(network_name, nodes, probs, properties)
 
