@@ -249,6 +249,9 @@ class Variable:
 
         return "".join(out)
 
+    def __repr__(self):
+        return "Variable<" + self.name + ">"
+
 
 class BayesNet:
 
@@ -258,10 +261,18 @@ class BayesNet:
         self.probs = probs
         self.properties = properties
 
-        self.var_distribution = {}
-
     def parent_nodes(self, node_name):
         return [parent.name for parent in self.probs[node_name].cond_vars]
+
+    def child_nodes(self, node_name):
+        target_node = self.nodes[node_name]
+        children = []
+
+        for node in self.nodes:
+            if target_node in self.probs[node].cond_vars:
+                children.append(node)
+
+        return children
 
     def init_from_bif_file(bif_file_path):
         data_list = BIF_Parser.parse(bif_file_path)
@@ -316,16 +327,16 @@ class BayesNet:
 
         return prob
 
-    def get_ancestors_set(self, nodes):  # ancestor including the node
+    def get_ancestors_set(self, nodes_names):  # ancestor including the node
         parent_nodes_set = set()
-        for node in nodes:
+        for node in nodes_names:
             parent_nodes_set |= set(self.parent_nodes(node))
-        parent_nodes_not_in_nodes_set = parent_nodes_set - set(nodes)
+        parent_nodes_not_in_nodes_set = parent_nodes_set - set(nodes_names)
 
         if not parent_nodes_not_in_nodes_set:
-            return set(nodes)
+            return set(nodes_names)
 
-        return set(nodes) | parent_nodes_set | \
+        return set(nodes_names) | parent_nodes_set | \
             self.get_ancestors_set(parent_nodes_not_in_nodes_set)
 
     def get_joint_distribution(self, variables_names):
