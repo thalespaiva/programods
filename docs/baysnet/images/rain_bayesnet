@@ -1,0 +1,8 @@
+digraph {
+	GramaMolhada
+	Sprinkler
+	Chuva
+		Sprinkler -> GramaMolhada
+		Chuva -> GramaMolhada
+		Chuva -> Sprinkler
+}
