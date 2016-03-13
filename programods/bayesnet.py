@@ -118,7 +118,8 @@ class Function:
         domains = [v.domain for v in self.variables]
 
         for valuation in it.product(*domains):
-            out.append('    %-25s : %10.5f\n' % (valuation, self.values[valuation]))
+            out.append('    %-25s : %10.5f\n' % (valuation,
+                                                 self.values[valuation]))
 
         return ''.join(out)
 
@@ -248,16 +249,6 @@ class Variable:
 
         return "".join(out)
 
-    # def domain_product(*variables):
-    #     domains = []
-    #     return it.product(*var)
-
-
-class Node:
-
-    def __init__(name, parents):
-        pass
-
 
 class BayesNet:
 
@@ -332,7 +323,7 @@ class BayesNet:
         parent_nodes_not_in_nodes_set = parent_nodes_set - set(nodes)
 
         if not parent_nodes_not_in_nodes_set:
-            return set()
+            return set(nodes)
 
         return set(nodes) | parent_nodes_set | \
             self.get_ancestors_set(parent_nodes_not_in_nodes_set)
@@ -358,7 +349,15 @@ class BayesNet:
 
 
 if __name__ == "__main__":
-    v = BayesNet.init_from_bif_file('../examples/bayesnet/asia/asia.bif')
-    vs = v.nodes
-    fs = v.probs
-    n = BayesNet.init_from_bif_file('../examples/bayesnet/asia/rain.bif')
+    asia = BayesNet.init_from_bif_file('../examples/bayesnet/asia/asia.bif')
+    rain = BayesNet.init_from_bif_file('../examples/bayesnet/rain/rain.bif')
+    p, q = asia.probs['lung'], asia.probs['xray']
+    print(p)
+    print(q)
+    r = p * q
+    print(r)
+    v = asia.nodes['smoke']
+    z = r % v
+    print(z)
+    valuation = {'xray': 'yes', 'dysp': 'no'}
+    print(asia.conjunctive_query(valuation))
