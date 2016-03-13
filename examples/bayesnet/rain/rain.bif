@@ -1,0 +1,24 @@
+network unknown {
+}
+variable Chuva {
+  type discrete [ 2 ] { yes, no };
+}
+variable Sprinkler {
+  type discrete [ 2 ] { yes, no };
+}
+variable GramaMolhada {
+  type discrete [ 2 ] { yes, no };
+}
+probability ( Chuva ) {
+  table 0.2, 0.8;
+}
+probability ( Sprinkler | Chuva ) {
+  (yes) 0.01, 0.99;
+  (no) 0.4, 0.6;
+}
+probability ( GramaMolhada | Sprinkler, Chuva) {
+  (yes, yes) 0.99, 0.01;
+  (no, yes) 0.8, 0.2;
+  (yes, no) 0.9, 0.1;
+  (no, no) 0.0, 1.0;
+}
