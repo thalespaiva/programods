@@ -84,7 +84,7 @@ class BIF_Parser:
         main_var = variables[vars_info.pop(0)]
         cond_vars = [variables[v] for v in vars_info.pop(0)]
 
-        probability = Probability([main_var], cond_vars)
+        probability = Distribution([main_var], cond_vars)
 
         probs_info = item.pop(0)
         if probs_info[0] == BIF_Parser.TABVALS_KEY:
@@ -101,85 +101,25 @@ class BIF_Parser:
         return probability
 
 
-class Function:
+class Distribution:
 
-    def __init__(self, variables):
-        self.variables = variables
+    def __init__(self, main_vars, cond_vars):
+        self.main_vars = main_vars
+        self.cond_vars = cond_vars
+
         self.values = {}
+
+    @property
+    def variables(self):
+        return self.main_vars + self.cond_vars
 
     def add_value(self, valuation, value):
         self.values[valuation] = value
-
-    def __str__(self):
-        out = []
-
-        out.append('[F] F over %s\n' % [v.name for v in self.variables])
-
-        domains = [v.domain for v in self.variables]
-
-        for valuation in it.product(*domains):
-            out.append('    %-25s : %10.5f\n' % (valuation,
-                                                 self.values[valuation]))
-
-        return ''.join(out)
 
     def evaluate(self, var_valuation):
         valuation = tuple(var_valuation[v.name] for v in self.variables)
 
         return self.values[valuation]
-
-    # def __mul__(self, function):
-    #     variables_union = list(set(self.variables) | set(function.variables))
-    #     product = Function(variables_union)
-
-    #     var_names = [var.name for var in product.variables]
-    #     for valuation in it.product(*[v.domain for v in product.variables]):
-    #         var_valuation = dict(zip(var_names, valuation))
-    #       val = self.evaluate(var_valuation)*function.evaluate(var_valuation)
-    #         product.values[valuation] = val
-
-    #     return product
-
-    # def __truediv__(self, function):
-    #     variables_union = list(set(self.variables) | set(function.variables))
-    #     division = Function(variables_union)
-
-    #     var_names = [var.name for var in division.variables]
-    #     for valuation in it.product(*[v.domain for v in division.variables]):
-    #         var_valuation = dict(zip(var_names, valuation))
-    #         if function.evaluate(var_valuation) == 0:
-    #             val = None
-    #         else:
-    #             val = (self.evaluate(var_valuation) /
-    #                    function.evaluate(var_valuation))
-    #         division.values[valuation] = val
-
-    #     return division
-
-    # def __sub__(self, variable):
-    #     var_name = variable.name
-
-    #     elim_vars = [v for v in self.variables if v.name != var_name]
-    #     elim_func = Function(elim_vars)
-
-    #     elim_var_names = [var.name for var in elim_vars]
-    #     for elim_valuation in it.product(*[v.domain for v in elim_vars]):
-    #         var_valuation = dict(zip(elim_var_names, elim_valuation))
-    #         val_sum = 0
-    #         for value in variable.domain:
-    #             var_valuation[var_name] = value
-    #             val_sum += self.evaluate(var_valuation)
-    #         elim_func.add_value(elim_valuation, val_sum)
-
-    #     return elim_func
-
-
-class Probability(Function):
-
-    def __init__(self, main_vars, cond_vars):
-        self.main_vars = main_vars
-        self.cond_vars = cond_vars
-        super().__init__(main_vars + cond_vars)
 
     def __str__(self):
         out = []
@@ -187,7 +127,7 @@ class Probability(Function):
         main_domains = [main.domain for main in self.main_vars]
         cond_domains = [cond.domain for cond in self.cond_vars]
 
-        out.append("[+] Probability(")
+        out.append("[+] Distribution(")
         out.append("%s" % ','.join(map(lambda x: x.name, self.main_vars)))
         out.append(" | ")
         out.append("%s" % ','.join(map(lambda x: x.name, self.cond_vars)))
@@ -205,53 +145,76 @@ class Probability(Function):
 
         return ''.join(out)
 
+    def valuate_consist(self, valuation, variable, value):
+        if not valuation.get(variable) or valuation.get(variable) == value:
+            valuation[variable] = value
+            return self.evaluate(valuation)
+        else:
+            return 0
+
+    def gen_consistent_valuation_or_none(self, var_valuation_tuples):
+        valuation = {}
+        for var, value in var_valuation_tuples:
+            if not valuation.get(var) or valuation.get(var) == value:
+                valuation[var] = value
+            else:
+                return None
+        return valuation
+
     def __mod__(self, variable):
         var_name = variable.name
 
         main_elim_vars = [v for v in self.main_vars if v.name != var_name]
         cond_elim_vars = [v for v in self.cond_vars if v.name != var_name]
-        elim_func = Probability(main_elim_vars, cond_elim_vars)
+        elim_func = Distribution(main_elim_vars, cond_elim_vars)
 
         elim_var_names = [var.name for var in elim_func.variables]
-        total = 0
         domains_list = [v.domain for v in elim_func.variables]
-        for elim_valuation in it.product(*domains_list):
-            var_valuation = dict(zip(elim_var_names, elim_valuation))
-            val_sum = 0
-            for value in variable.domain:
-                var_valuation[var_name] = value
-                val_sum += self.evaluate(var_valuation)
-            elim_func.add_value(elim_valuation, val_sum)
-            total += val_sum
 
-        for k, v in elim_func.values.items():
-            elim_func.values[k] = v/total
+        factor = 1/len(variable.domain)
+
+        for elim_valuation in it.product(*domains_list):
+            var_valuation = zip(elim_var_names, elim_valuation)
+            consist_val = self.gen_consistent_valuation_or_none(var_valuation)
+            sum_ = 0
+            if consist_val:
+                for value in variable.domain:
+                    consist_val[var_name] = value
+                    sum_ += self.evaluate(consist_val)
+                elim_func.add_value(elim_valuation, sum_*factor)
+
         return elim_func
 
     def __mul__(self, probab):
-        main_vars_set = set(self.main_vars) | set(probab.main_vars)
-        cond_vars_set = (set(self.cond_vars) | set(probab.cond_vars)) - \
-            main_vars_set
-        product = Probability(list(main_vars_set), list(cond_vars_set))
+        main_vars_set = self.main_vars + probab.main_vars
+        cond_vars_set = self.cond_vars + probab.cond_vars
+        product = Distribution(main_vars_set, cond_vars_set)
 
         var_names = [var.name for var in product.variables]
         for valuation in it.product(*[v.domain for v in product.variables]):
-            var_valuation = dict(zip(var_names, valuation))
-            val = self.evaluate(var_valuation)*probab.evaluate(var_valuation)
+            var_valuation = zip(var_names, valuation)
+            consist_val = self.gen_consistent_valuation_or_none(var_valuation)
+            if consist_val:
+                val = self.evaluate(consist_val)*probab.evaluate(consist_val)
+            else:
+                val = 0
             product.values[valuation] = val
 
         return product
 
     def __truediv__(self, probab):
-        main_vars_set = set(self.main_vars) | set(probab.main_vars)
-        cond_vars_set = (set(self.cond_vars) | set(probab.cond_vars)) - \
-            main_vars_set
-        division = Probability(list(main_vars_set), list(cond_vars_set))
+        main_vars_set = self.main_vars + probab.main_vars
+        cond_vars_set = self.cond_vars + probab.cond_vars
+        division = Distribution(main_vars_set, cond_vars_set)
 
         var_names = [var.name for var in division.variables]
         for valuation in it.product(*[v.domain for v in division.variables]):
-            var_valuation = dict(zip(var_names, valuation))
-            val = self.evaluate(var_valuation)/probab.evaluate(var_valuation)
+            var_valuation = zip(var_names, valuation)
+            consist_val = self.gen_consistent_valuation_or_none(var_valuation)
+            if consist_val:
+                val = self.evaluate(consist_val)*probab.evaluate(consist_val)
+            else:
+                val = 0
             division.values[valuation] = val
 
         return division
@@ -284,6 +247,9 @@ class BayesNet:
         self.nodes = nodes
         self.local_probs = local_probs
         self.properties = properties
+
+    def __getitem__(self, index):
+        return self.nodes[index]
 
     def parent_nodes(self, node_name):
         return [prnt.name for prnt in self.local_probs[node_name].cond_vars]
