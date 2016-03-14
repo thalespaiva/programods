@@ -113,13 +113,19 @@ class Distribution:
     def variables(self):
         return self.main_vars + self.cond_vars
 
+    def __getitem__(self, key):
+        return self.values.get(key, 0)
+
+    def __setitem__(self, key, value):
+        self.values[key] = value
+
     def add_value(self, valuation, value):
         self.values[valuation] = value
 
     def evaluate(self, var_valuation):
         valuation = tuple(var_valuation[v.name] for v in self.variables)
 
-        return self.values[valuation]
+        return self[valuation]
 
     def __str__(self):
         out = []
@@ -141,7 +147,7 @@ class Distribution:
             out.append("\n")
             out.append("%10s " % ','.join(map(str, cond_val)))
             for main_val in it.product(*main_domains):
-                out.append("| %.4f  " % self.values[main_val + cond_val])
+                out.append("| %.4f  " % self[main_val + cond_val])
 
         return ''.join(out)
 
@@ -176,8 +182,8 @@ class Distribution:
         for elim_valuation in it.product(*domains_list):
             var_valuation = zip(elim_var_names, elim_valuation)
             consist_val = self.gen_consistent_valuation_or_none(var_valuation)
-            sum_ = 0
             if consist_val:
+                sum_ = 0
                 for value in variable.domain:
                     consist_val[var_name] = value
                     sum_ += self.evaluate(consist_val)
@@ -196,9 +202,7 @@ class Distribution:
             consist_val = self.gen_consistent_valuation_or_none(var_valuation)
             if consist_val:
                 val = self.evaluate(consist_val)*probab.evaluate(consist_val)
-            else:
-                val = 0
-            product.values[valuation] = val
+                product[valuation] = val
 
         return product
 
@@ -213,9 +217,7 @@ class Distribution:
             consist_val = self.gen_consistent_valuation_or_none(var_valuation)
             if consist_val:
                 val = self.evaluate(consist_val)*probab.evaluate(consist_val)
-            else:
-                val = 0
-            division.values[valuation] = val
+                division[valuation] = val
 
         return division
 
@@ -389,7 +391,6 @@ class BayesNet:
         prob = self.local_probs[ancestors_set.pop()]
         for var_name in ancestors_set:
             prob *= self.local_probs[var_name]
-        print(prob)
         variables_names_set = set(variables_names)
         for var in prob.variables:
             if var.name not in variables_names_set:
