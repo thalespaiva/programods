@@ -176,7 +176,7 @@ class Function:
 
 class Probability(Function):
 
-    def __str__(self):
+    def __str__1(self):
         out = []
 
         out.append('[P] P( %s |\n' % str(list(v.name for v in self.main_vars)))
@@ -195,6 +195,30 @@ class Probability(Function):
         self.main_vars = main_vars
         self.cond_vars = cond_vars
         super().__init__(main_vars + cond_vars)
+
+    def __str__(self):
+        out = []
+
+        main_domains = [main.domain for main in self.main_vars]
+        cond_domains = [cond.domain for cond in self.cond_vars]
+
+        out.append("[+] Probability(")
+        out.append("%s" % ','.join(map(lambda x: x.name, self.main_vars)))
+        out.append(" | ")
+        out.append("%s" % ','.join(map(lambda x: x.name, self.cond_vars)))
+        out.append(")\n")
+        out.append("%10s " % ','.join(map(lambda x: x.name[:3],
+                                          self.cond_vars)))
+        for main_val in it.product(*main_domains):
+            out.append("| %-8s" % ','.join(map(str, main_val)))
+
+        for cond_val in it.product(*cond_domains):
+            out.append("\n")
+            out.append("%10s " % ','.join(map(str, cond_val)))
+            for main_val in it.product(*main_domains):
+                out.append("| %.4f  " % self.values[main_val + cond_val])
+
+        return ''.join(out)
 
     def __mod__(self, variable):
         var_name = variable.name
