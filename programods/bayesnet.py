@@ -219,6 +219,12 @@ class Distribution:
 
         return division
 
+    def normalize(self):
+        total = sum(self.values.values())
+
+        for k, v in self.values.items():
+            self.values[k] = v/total
+
 
 class Variable:
 
@@ -383,12 +389,13 @@ class BayesNet:
         prob = self.local_probs[ancestors_set.pop()]
         for var_name in ancestors_set:
             prob *= self.local_probs[var_name]
-
+        print(prob)
         variables_names_set = set(variables_names)
         for var in prob.variables:
             if var.name not in variables_names_set:
                 prob %= var
 
+        prob.normalize()
         return prob
 
     def conjunctive_query(self, valuation):
