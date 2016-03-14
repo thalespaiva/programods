@@ -128,53 +128,68 @@ class Function:
 
         return self.values[valuation]
 
-    def __mul__(self, function):
-        variables_union = list(set(self.variables) | set(function.variables))
-        product = Function(variables_union)
+    # def __mul__(self, function):
+    #     variables_union = list(set(self.variables) | set(function.variables))
+    #     product = Function(variables_union)
 
-        var_names = [var.name for var in product.variables]
-        for valuation in it.product(*[v.domain for v in product.variables]):
-            var_valuation = dict(zip(var_names, valuation))
-            val = self.evaluate(var_valuation)*function.evaluate(var_valuation)
-            product.values[valuation] = val
+    #     var_names = [var.name for var in product.variables]
+    #     for valuation in it.product(*[v.domain for v in product.variables]):
+    #         var_valuation = dict(zip(var_names, valuation))
+    #       val = self.evaluate(var_valuation)*function.evaluate(var_valuation)
+    #         product.values[valuation] = val
 
-        return product
+    #     return product
 
-    def __div__(self, function):
-        variables_union = list(set(self.variables) | set(function.variables))
-        division = Function(variables_union)
+    # def __truediv__(self, function):
+    #     variables_union = list(set(self.variables) | set(function.variables))
+    #     division = Function(variables_union)
 
-        var_names = [var.name for var in division.variables]
-        for valuation in it.product(*[v.domain for v in division.variables]):
-            var_valuation = dict(zip(var_names, valuation))
-            if function.evaluate(var_valuation) == 0:
-                val = None
-            else:
-                val = (self.evaluate(var_valuation) /
-                       function.evaluate(var_valuation))
-            division.values[valuation] = val
+    #     var_names = [var.name for var in division.variables]
+    #     for valuation in it.product(*[v.domain for v in division.variables]):
+    #         var_valuation = dict(zip(var_names, valuation))
+    #         if function.evaluate(var_valuation) == 0:
+    #             val = None
+    #         else:
+    #             val = (self.evaluate(var_valuation) /
+    #                    function.evaluate(var_valuation))
+    #         division.values[valuation] = val
 
-        return division
+    #     return division
 
-    def __sub__(self, variable):
-        var_name = variable.name
+    # def __sub__(self, variable):
+    #     var_name = variable.name
 
-        elim_vars = [v for v in self.variables if v.name != var_name]
-        elim_func = Function(elim_vars)
+    #     elim_vars = [v for v in self.variables if v.name != var_name]
+    #     elim_func = Function(elim_vars)
 
-        elim_var_names = [var.name for var in elim_vars]
-        for elim_valuation in it.product(*[v.domain for v in elim_vars]):
-            var_valuation = dict(zip(elim_var_names, elim_valuation))
-            val_sum = 0
-            for value in variable.domain:
-                var_valuation[var_name] = value
-                val_sum += self.evaluate(var_valuation)
-            elim_func.add_value(elim_valuation, val_sum)
+    #     elim_var_names = [var.name for var in elim_vars]
+    #     for elim_valuation in it.product(*[v.domain for v in elim_vars]):
+    #         var_valuation = dict(zip(elim_var_names, elim_valuation))
+    #         val_sum = 0
+    #         for value in variable.domain:
+    #             var_valuation[var_name] = value
+    #             val_sum += self.evaluate(var_valuation)
+    #         elim_func.add_value(elim_valuation, val_sum)
 
-        return elim_func
+    #     return elim_func
 
 
 class Probability(Function):
+
+    def __str__(self):
+        out = []
+
+        out.append('[P] P( %s |\n' % str(list(v.name for v in self.main_vars)))
+        out.append('       %s )\n' % str(list(v.name for v in self.cond_vars)))
+
+        domains = [v.domain for v in self.main_vars] + \
+            [v.domain for v in self.cond_vars]
+
+        for valuation in it.product(*domains):
+            out.append('    %-25s : %10.5f\n' % (valuation,
+                                                 self.values[valuation]))
+
+        return ''.join(out)
 
     def __init__(self, main_vars, cond_vars):
         self.main_vars = main_vars
@@ -218,7 +233,7 @@ class Probability(Function):
 
         return product
 
-    def __div__(self, probab):
+    def __truediv__(self, probab):
         main_vars_set = set(self.main_vars) | set(probab.main_vars)
         cond_vars_set = (set(self.cond_vars) | set(probab.cond_vars)) - \
             main_vars_set
@@ -227,7 +242,7 @@ class Probability(Function):
         var_names = [var.name for var in division.variables]
         for valuation in it.product(*[v.domain for v in division.variables]):
             var_valuation = dict(zip(var_names, valuation))
-            val = self.evaluate(var_valuation)*probab.evaluate(var_valuation)
+            val = self.evaluate(var_valuation)/probab.evaluate(var_valuation)
             division.values[valuation] = val
 
         return division
@@ -274,6 +289,48 @@ class BayesNet:
 
         return children
 
+    def bayes_ball(self, source_nodes, observed_nodes):
+        visited = {node: False for node in self.nodes}
+        marked_top = {node: False for node in self.nodes}
+        marked_bottom = {node: False for node in self.nodes}
+
+        from_child, from_parent = 'from_child', 'from_parent'
+
+        schedule = [(node, from_child) for node in source_nodes]
+        while schedule:
+            s_node, visit_from = schedule.pop()
+            visited[s_node] = True
+
+            if visit_from == from_parent:
+                if s_node in observed_nodes:
+                    if not marked_top[s_node]:
+                        marked_top[s_node] = True
+                        for parent in self.parent_nodes(s_node):
+                            schedule.append((parent, from_child))
+
+                elif not marked_bottom[s_node]:
+                    marked_bottom[s_node] = True
+                    for child in self.child_nodes(s_node):
+                        schedule.append((child, from_parent))
+
+            elif s_node not in observed_nodes:
+                if not marked_top[s_node]:
+                    marked_top[s_node] = True
+                    for parent in self.parent_nodes(s_node):
+                        schedule.append((parent, from_child))
+
+                if not marked_bottom[s_node] and not self.parent_nodes(s_node):
+                    marked_bottom[s_node] = True
+                    print('xx')
+                    for child in self.child_nodes(s_node):
+                        schedule.append((child, from_parent))
+
+        irr = [node for node in marked_bottom if not marked_bottom[node]]
+        req_prob = [node for node in marked_top if marked_top[node]]
+        req_obs = [node for node in visited if visited[node]]
+
+        return (irr, req_prob, req_obs)
+
     def init_from_bif_file(bif_file_path):
         data_list = BIF_Parser.parse(bif_file_path)
 
@@ -313,6 +370,12 @@ class BayesNet:
     def query(valuation):  # valuation = {'name': 'value'}
         # Factorization Theorem
         pass
+
+    def get_conditional_distrib(self, main_vars, cond_vars):
+        joint_dist = self.get_joint_distribution(main_vars + cond_vars)
+        cond_dist = self.get_joint_distribution(cond_vars)
+
+        return joint_dist/cond_dist
 
     def get_var_distribution(self, var_name):
         if not self.parent_nodes(var_name):
