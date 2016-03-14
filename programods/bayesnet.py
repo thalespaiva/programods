@@ -318,6 +318,42 @@ class BayesNet:
 
         return (irr, req_prob, req_obs)
 
+    def reachable_via_active_trails(self, source_var, observation_set):
+        observation_set = set(observation_set)
+        up, down = 'up', 'down'
+
+        obs_ancestors = self.get_ancestors_set(observation_set)
+
+        schedule = [(source_var, up)]
+        visited = set()
+        reachable = set()
+
+        def schedule_parents(node):
+            for n in self.parent_nodes(node):
+                schedule.append((n, up))
+
+        def schedule_children(node):
+            for n in self.child_nodes(node):
+                schedule.append((n, down))
+
+        while schedule:
+            visiting = schedule.pop()
+            node, direct = visiting
+            if visiting not in visited:
+                if node not in observation_set:
+                    reachable.add(node)
+                visited.add(visiting)
+                if direct == up and node not in observation_set:
+                    schedule_parents(node)
+                    schedule_children(node)
+                elif direct == down:
+                    if node not in observation_set:
+                        schedule_children(node)
+                    if node in obs_ancestors:
+                        schedule_parents(node)
+
+        return reachable
+
     def init_from_bif_file(bif_file_path):
         data_list = BIF_Parser.parse(bif_file_path)
 
