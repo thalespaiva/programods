@@ -176,21 +176,6 @@ class Function:
 
 class Probability(Function):
 
-    def __str__1(self):
-        out = []
-
-        out.append('[P] P( %s |\n' % str(list(v.name for v in self.main_vars)))
-        out.append('       %s )\n' % str(list(v.name for v in self.cond_vars)))
-
-        domains = [v.domain for v in self.main_vars] + \
-            [v.domain for v in self.cond_vars]
-
-        for valuation in it.product(*domains):
-            out.append('    %-25s : %10.5f\n' % (valuation,
-                                                 self.values[valuation]))
-
-        return ''.join(out)
-
     def __init__(self, main_vars, cond_vars):
         self.main_vars = main_vars
         self.cond_vars = cond_vars
@@ -390,10 +375,6 @@ class BayesNet:
             for parent in self.parent_nodes(node):
                 network.edge(parent, node)
         network.render(file_path, view=True)
-
-    def query(valuation):  # valuation = {'name': 'value'}
-        # Factorization Theorem
-        pass
 
     def get_conditional_distrib(self, main_vars, cond_vars):
         joint_dist = self.get_joint_distribution(main_vars + cond_vars)
