@@ -251,23 +251,27 @@ class BayesNet:
     def __getitem__(self, index):
         return self.nodes[index]
 
+    def __iter__(self):
+        for node in self.nodes:
+            yield node
+
     def parent_nodes(self, node_name):
         return [prnt.name for prnt in self.local_probs[node_name].cond_vars]
 
     def child_nodes(self, node_name):
-        target_node = self.nodes[node_name]
+        target_node = self[node_name]
         children = []
 
-        for node in self.nodes:
+        for node in self:
             if target_node in self.local_probs[node].cond_vars:
                 children.append(node)
 
         return children
 
     def bayes_ball(self, source_nodes, observed_nodes):
-        visited = {node: False for node in self.nodes}
-        marked_top = {node: False for node in self.nodes}
-        marked_bottom = {node: False for node in self.nodes}
+        visited = {node: False for node in self}
+        marked_top = {node: False for node in self}
+        marked_bottom = {node: False for node in self}
 
         from_child, from_parent = 'from_child', 'from_parent'
 
@@ -334,10 +338,10 @@ class BayesNet:
         import graphviz as gv
 
         network = gv.Digraph(format='png')
-        for node in self.nodes:
+        for node in self:
             network.node(node)
 
-        for node in self.nodes:
+        for node in self:
             for parent in self.parent_nodes(node):
                 network.edge(parent, node)
         network.render(file_path, view=True)
@@ -401,7 +405,7 @@ if __name__ == "__main__":
     print(q)
     r = p * q
     print(r)
-    v = asia.nodes['smoke']
+    v = asia['smoke']
     z = r % v
     print(z)
     valuation = {'xray': 'yes', 'dysp': 'no'}
