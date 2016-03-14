@@ -338,8 +338,8 @@ class BayesNet:
 
         while schedule:
             visiting = schedule.pop()
-            node, direct = visiting
             if visiting not in visited:
+                node, direct = visiting
                 if node not in observation_set:
                     reachable.add(node)
                 visited.add(visiting)
