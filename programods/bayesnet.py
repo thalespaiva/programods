@@ -294,21 +294,21 @@ class Variable:
 
 class BayesNet:
 
-    def __init__(self, name, nodes, probs, properties=None):
+    def __init__(self, name, nodes, local_probs, properties=None):
         self.name = name
         self.nodes = nodes
-        self.probs = probs
+        self.local_probs = local_probs
         self.properties = properties
 
     def parent_nodes(self, node_name):
-        return [parent.name for parent in self.probs[node_name].cond_vars]
+        return [prnt.name for prnt in self.local_probs[node_name].cond_vars]
 
     def child_nodes(self, node_name):
         target_node = self.nodes[node_name]
         children = []
 
         for node in self.nodes:
-            if target_node in self.probs[node].cond_vars:
+            if target_node in self.local_probs[node].cond_vars:
                 children.append(node)
 
         return children
@@ -360,7 +360,7 @@ class BayesNet:
 
         network_name = 'None'
         nodes = {}  # indexed by variables names
-        probs = {}  # indexed by nodes indexes
+        local_probs = {}  # indexed by nodes indexes
         properties = []
 
         for item in data_list:
@@ -375,9 +375,9 @@ class BayesNet:
 
             if item_type == BIF_Parser.PROB_KEY:
                 prob = BIF_Parser._get_prob_from_data_item(item, nodes)
-                probs[prob.main_vars[0].name] = prob
+                local_probs[prob.main_vars[0].name] = prob
 
-        return BayesNet(network_name, nodes, probs, properties)
+        return BayesNet(network_name, nodes, local_probs, properties)
 
     def draw(self, file_path):
         import graphviz as gv
@@ -403,9 +403,9 @@ class BayesNet:
 
     def get_var_distribution(self, var_name):
         if not self.parent_nodes(var_name):
-            return self.probs[var_name]
+            return self.local_probs[var_name]
 
-        prob = self.probs[var_name]
+        prob = self.local_probs[var_name]
         for parent in self.parent_nodes(var_name):
             prob *= self.get_var_distribution(parent)
         for var in prob.variables:
@@ -429,9 +429,9 @@ class BayesNet:
     def get_joint_distribution(self, variables_names):
         ancestors_set = self.get_ancestors_set(variables_names)
 
-        prob = self.probs[ancestors_set.pop()]
+        prob = self.local_probs[ancestors_set.pop()]
         for var_name in ancestors_set:
-            prob *= self.probs[var_name]
+            prob *= self.local_probs[var_name]
 
         variables_names_set = set(variables_names)
         for var in prob.variables:
@@ -449,7 +449,7 @@ class BayesNet:
 if __name__ == "__main__":
     asia = BayesNet.init_from_bif_file('../examples/bayesnet/asia/asia.bif')
     rain = BayesNet.init_from_bif_file('../examples/bayesnet/rain/rain.bif')
-    p, q = asia.probs['lung'], asia.probs['xray']
+    p, q = asia.local_probs['lung'], asia.local_probs['xray']
     print(p)
     print(q)
     r = p * q
