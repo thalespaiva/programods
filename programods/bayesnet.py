@@ -276,77 +276,13 @@ class BayesNet:
 
         return children
 
-    def bayes_ball(self, source_nodes, observed_nodes):
-        visited = {node: False for node in self}
-        marked_top = {node: False for node in self}
-        marked_bottom = {node: False for node in self}
-
-        from_child, from_parent = 'from_child', 'from_parent'
-
-        schedule = [(node, from_child) for node in source_nodes]
-        while schedule:
-            s_node, visit_from = schedule.pop()
-            visited[s_node] = True
-
-            if visit_from == from_parent:
-                if s_node in observed_nodes:
-                    if not marked_top[s_node]:
-                        marked_top[s_node] = True
-                        for parent in self.parent_nodes(s_node):
-                            schedule.append((parent, from_child))
-
-                elif not marked_bottom[s_node]:
-                    marked_bottom[s_node] = True
-                    for child in self.child_nodes(s_node):
-                        schedule.append((child, from_parent))
-
-            elif s_node not in observed_nodes:
-                if not marked_top[s_node]:
-                    marked_top[s_node] = True
-                    for parent in self.parent_nodes(s_node):
-                        schedule.append((parent, from_child))
-
-                if not marked_bottom[s_node] and not self.parent_nodes(s_node):
-                    marked_bottom[s_node] = True
-                    print('xx')
-                    for child in self.child_nodes(s_node):
-                        schedule.append((child, from_parent))
-
-        irr = [node for node in marked_bottom if not marked_bottom[node]]
-        req_prob = [node for node in marked_top if marked_top[node]]
-        req_obs = [node for node in visited if visited[node]]
-
-        return (irr, req_prob, req_obs)
-
-    def draw_reachable_via_active_trails(self, tgt, source_var, observed_set):
-        import graphviz as gv
-
-        reachable = self.reachable_via_active_trails(source_var, observed_set)
-
-        network = gv.Digraph(format='png')
-        for node in self:
-            if node == source_var:
-                color = 'blue'
-            elif node in reachable:
-                color = 'green'
-            elif node in observed_set:
-                color = 'grey'
-            else:
-                color = 'green'
-            network.node(node, color=color)
-
-        for node in self:
-            for parent in self.parent_nodes(node):
-                network.edge(parent, node)
-        network.render(tgt, view=True)
-
-    def reachable_via_active_trails(self, source_var, observation_set):
-        observation_set = set(observation_set)
+    def reachables_via_active_trails(self, source_vars, observed_set):
+        observed_set = set(observed_set)
         up, down = 'up', 'down'
 
-        obs_ancestors = self.get_ancestors_set(observation_set)
+        obs_ancestors = self.get_ancestors_set(observed_set)
 
-        schedule = [(source_var, up)]
+        schedule = [(source_var, up) for source_var in source_vars]
         visited = set()
         reachable = set()
 
@@ -362,19 +298,41 @@ class BayesNet:
             visiting = schedule.pop()
             if visiting not in visited:
                 node, direct = visiting
-                if node not in observation_set:
+                if node not in observed_set:
                     reachable.add(node)
                 visited.add(visiting)
-                if direct == up and node not in observation_set:
+                if direct == up and node not in observed_set:
                     schedule_parents(node)
                     schedule_children(node)
                 elif direct == down:
-                    if node not in observation_set:
+                    if node not in observed_set:
                         schedule_children(node)
                     if node in obs_ancestors:
                         schedule_parents(node)
 
         return reachable
+
+    def draw_reachables_via_active_trails(self, tgt, src_vars, observed_set):
+        import graphviz as gv
+
+        reachable = self.reachables_via_active_trails(src_vars, observed_set)
+
+        network = gv.Digraph(format='png')
+        for node in self:
+            if node in src_vars:
+                color = 'blue'
+            elif node in reachable:
+                color = 'green'
+            elif node in observed_set:
+                color = 'grey'
+            else:
+                color = 'green'
+            network.node(node, color=color)
+
+        for node in self:
+            for parent in self.parent_nodes(node):
+                network.edge(parent, node)
+        network.render(tgt, view=True)
 
     def init_from_bif_file(bif_file_path):
         data_list = BIF_Parser.parse(bif_file_path)
