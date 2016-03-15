@@ -318,6 +318,28 @@ class BayesNet:
 
         return (irr, req_prob, req_obs)
 
+    def draw_reachable_via_active_trails(self, tgt, source_var, observed_set):
+        import graphviz as gv
+
+        reachable = self.reachable_via_active_trails(source_var, observed_set)
+
+        network = gv.Digraph(format='png')
+        for node in self:
+            if node == source_var:
+                color = 'blue'
+            elif node in reachable:
+                color = 'green'
+            elif node in observed_set:
+                color = 'grey'
+            else:
+                color = 'green'
+            network.node(node, color=color)
+
+        for node in self:
+            for parent in self.parent_nodes(node):
+                network.edge(parent, node)
+        network.render(tgt, view=True)
+
     def reachable_via_active_trails(self, source_var, observation_set):
         observation_set = set(observation_set)
         up, down = 'up', 'down'
