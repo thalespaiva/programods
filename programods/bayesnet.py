@@ -276,7 +276,7 @@ class BayesNet:
 
         return children
 
-    def reachables_via_active_trails(self, source_vars, observed_set):
+    def reachable_via_active_trails(self, source_vars, observed_set):
         observed_set = set(observed_set)
         up, down = 'up', 'down'
 
@@ -312,10 +312,17 @@ class BayesNet:
 
         return reachable
 
-    def draw_reachables_via_active_trails(self, tgt, src_vars, observed_set):
+    def is_d_separated(self, this_set, that_set, observed_set):
+        this_set, that_set = set(this_set), set(that_set)
+
+        reachable = self.reachable_via_active_trails(this_set, observed_set)
+
+        return len(reachable & that_set) == 0
+
+    def draw_reachable_via_active_trails(self, tgt, src_vars, observed_set):
         import graphviz as gv
 
-        reachable = self.reachables_via_active_trails(src_vars, observed_set)
+        reachable = self.reachable_via_active_trails(src_vars, observed_set)
 
         network = gv.Digraph(format='png')
         for node in self:
