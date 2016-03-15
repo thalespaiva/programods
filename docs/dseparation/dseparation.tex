@@ -27,7 +27,7 @@
 \usepackage{indentfirst}
 \usepackage{placeins}
 \usepackage{graphicx,subcaption}
-
+\usepackage{amssymb}
 \usepackage{tikz}
 \usetikzlibrary{arrows}
 \usetikzlibrary{positioning}
@@ -150,18 +150,48 @@ showstringspaces=false            %
 
 \pagebreak
 \section{Separação Direcional}
+\FloatBarrier
 
 Queremos um meio sistemático de determinar quando um conjunto de variáveis $\set{X}$ é condicionalmente independente de outro $\set{Y}$, dado um conjunto $\set{Z}$ de variáveis observadas. Simbolicamente, queremos decidir se $ \set{X} \ind \set{Y} | \set{Z}$, ou se $ \set{X} \nind \set{Y} | \set{Z}$, dados cada um desses conjuntos de variáveis. 
 
 Um modo de atacar este problema é estudar quando há troca de informação entre dois nós de uma rede bayesiana (usarei nó e variável como sinônimos). Ou seja, dadas duas variáveis, como determinamos se duas delas são condicionalmente independentes apenas olhando para a topologia de seu digrafo de dependência. O motivo de nos preocuparmos com a topologia da rede, é que as relações de independência descobertas desta forma devem valer para todas as distribuições de probabilidade que fatoram esta rede.
 
-Considere os nós $X$, $Y$, $Z$. Para o caso em que há um arco $X \rightarrow Y$, é claro que não é para qualquer distribuição que a independência $X \ind Y | Z$ vale. Então, vamos considerar os digrafos mais simples em que $X$ e $Y$ interagem indiretamente através de $Z$. Estes digrafos são as 4 possíveis trilhas entre $X$ e $Y$ com $Z$ entre eles. Lembre que uma trilha em um digrafo é apenas um caminho em seu grafo induzido pela eliminação das orientações das arestas. As trilhas de interesse podem ser vistas na Figura~ref{fig:trails}.
+Considere os nós $X$, $Y$, $Z$. Para o caso em que há um arco $X \rightarrow Y$, é claro que não é para qualquer distribuição que a independência $X \ind Y | Z$ vale. Então, vamos considerar os digrafos mais simples em que $X$ e $Y$ interagem indiretamente através de $Z$. Estes digrafos são as 4 possíveis trilhas entre $X$ e $Y$ com $Z$ entre eles. Lembre que uma trilha em um digrafo é apenas um caminho em seu grafo induzido pela eliminação das orientações das arestas. As trilhas de interesse podem ser vistas na Figura~\ref{fig:trilhas}.
+
+Dizemos que uma trilha $X \leftrightharpoons Z \leftrightharpoons Y$ é ativa se há troca de informação entre $X$ e $Y$ através de $Z$. Vejamos, intuitivamente, quando uma trilha é necessariamente inativa, ou construir casos em que ela pode ser ativa (para \emph{quase todas} as distribuições que fatoram a rede).
+
+\begin{description}
+  \item \textbf{Causal} [\ref{fig:trilha_causal}] Suponha que a variável $Z$ foi observada na trilha $X \rightarrow Z \rightarrow Y$. Então uma informação sobre $X$ não deve afetar nossas crenças sobre $Y$ pois, numa rede bayesiana, $X$ é condicionalmente independente dos não descendentes de $X$, dados os seus pais ($X \ind nd(X) | pa(X)$). Agora suponha que a variável $Z$ não foi observada. Então uma informação sobre $X$ nos dá informação sobre $Z$, e esta nos dá informação sobre $Y$. Assim, nossa trilha causal é ativa se $Z$ não for observada, e inativa caso contrário.
+  
+  \item \textbf{Evidencial} [\ref{fig:trilha_evidencial}] Por uma argumentação similar à do caso anterior, uma trilha evidencial $X \leftarrow Z \leftarrow Y$ é ativa se $Z$ não for observada, e inativa caso contrário.
+
+  \item \textbf{Causa Comum} [\ref{fig:trilha_cc}] Considere a trilha de causa comum $X \leftarrow Z \rightarrow Y$ e suponha que $Z$ é variável observada. Temos que:
+  $X \ind nd(X) | pa(X) \Rightarrow X \ind Y | Z$ e portanto a trilha é inativa. Agora, se $Z$ não for observada, informação sobre $Y$ pode sugerir informação sobre $Z$, que por sua vez é propagada para $X$. Como exemplo, considere o caso em que $Z = \text{Aline sente frio}$, $X = \text{Aline toma café}$, $Y = \text{Aline abraça seu gatinho}$. Se Aline tomou café, aumentamos nossa crença de que ela está com frio, e consequentemente atualizamos a probabilidade de ela abraçar seu gatinho.
+
+  \item \textbf{Efeito Comum} [\ref{fig:trilha_ec}] Finalmente, considere uma trilha de efeito comum $X \rightarrow Z \leftarrow Y$. Se $Z$ não for observada, temos que $X \ind nd(X) | pa(X) \Rightarrow X \ind Y$ e a trilha é inativa. Agora, se $Z$ for observada, podemos elaborar facilmente um exemplo trivial em que uma informação sobre $X$ se propaga para $Y$. Considere as variáveis $X = \text{Marcelinho andou de skate}$, $Y = \text{Marcelinho comeu três sorvetes}$, e $Z =$ Marcelinho exclusivamente andou de skate ou exclusivamente comeu três sorvetes. É evidente que, se soubermos que $Z$ assume o valor verdadeiro, se $Y$ for verdadeiro, então $X$ é falso e vice versa, fazendo a trilha ser ativa.
+
+\end{description}
+
+A generalização do conceito de atividade para trilhas de comprimento arbitrário é simples.
+
+\begin{definition} Seja $\set{T}$ uma trilha de uma rede formada pelos nós $X_1 \leftrightharpoons \ldots \leftrightharpoons X_n$, e $\set{Z}$ um conjunto de variáveis observadas. $\set{T}$ é ativa dado $\set{Z}$ se:
+\begin{itemize}
+  \item[\emph{(i)}] Para qualquer subtrilha de $\set{T}$ na forma de efeito comum, $ X_{i-1} \rightarrow X_i \leftarrow X_{i+1} $, ou $X_i$ ou um de seus descendentes deve estar em $\set{Z}$.
+  \item[\emph{(ii)}] Nenhum outro nó da de $\set{T}$ está em $\set{Z}$.
+\end{itemize}
+\end{definition}
+
+E agora podemos estender a definição para conjuntos de variáveis, chegando onde queríamos chegar.
+
+\begin{definition}[d-separação] Sejam dados três conjuntos de nós de uma rede bayesiana, $\set{X}, \set{Y}, \set{Z}$. Dizemos que $\set{X}$ e $\set{Y}$ são direcionalmente separados, ou d-separados, se não há nenhuma trilha ativa de um nó qualquer de $\set{X}$ a um nó qualquer de $\set{Y}$, dado o conjunto $\set{Z}$ de variáveis observadas.
+\end{definition}
+
 
 \begin{figure}
     \centering
     \begin{subfigure}[b]{0.24\linewidth}        %% or \columnwidth
         \centering
-					\begin{tikzpicture}[->,>=stealth',auto,node distance=3cm,
+					\begin{tikzpicture}[->,>=stealth',auto,node distance=2cm,
 					  thick,main node/.style={circle,draw,font=\sffamily\bfseries}]
 					
 					  \node[main node] (x) {$X$};
@@ -174,11 +204,11 @@ Considere os nós $X$, $Y$, $Z$. Para o caso em que há um arco $X \rightarrow Y
 					;
 					\end{tikzpicture}
         \caption{Causal}
-        \label{fig:A}
+        \label{fig:trilha_causal}
     \end{subfigure}
     \begin{subfigure}[b]{0.24\linewidth}        %% or \columnwidth
         \centering
-					\begin{tikzpicture}[->,>=stealth',auto,node distance=3cm,
+					\begin{tikzpicture}[->,>=stealth',auto,node distance=2cm,
 					  thick,main node/.style={circle,draw,font=\sffamily\bfseries}]
 					
 					  \node[main node] (x) {$X$};
@@ -191,11 +221,11 @@ Considere os nós $X$, $Y$, $Z$. Para o caso em que há um arco $X \rightarrow Y
 					;
 					\end{tikzpicture}
         \caption{Evidencial}
-        \label{fig:B}
+        \label{fig:trilha_evidencial}
     \end{subfigure}
     \begin{subfigure}[b]{0.24\linewidth}        %% or \columnwidth
         \centering
-					\begin{tikzpicture}[->,>=stealth',auto,node distance=3cm,
+					\begin{tikzpicture}[->,>=stealth',auto,node distance=2cm,
 					  thick,main node/.style={circle,draw,font=\sffamily\bfseries}]
 					
 					  \node[main node] (x) {$X$};
@@ -208,11 +238,11 @@ Considere os nós $X$, $Y$, $Z$. Para o caso em que há um arco $X \rightarrow Y
 					;
 					\end{tikzpicture}
         \caption{Causa Comum}
-        \label{fig:B}
+        \label{fig:trilha_cc}
     \end{subfigure}
     \begin{subfigure}[b]{0.24\linewidth}        %% or \columnwidth
         \centering
-					\begin{tikzpicture}[->,>=stealth',auto,node distance=3cm,
+					\begin{tikzpicture}[->,>=stealth',auto,node distance=2cm,
 					  thick,main node/.style={circle,draw,font=\sffamily\bfseries}]
 					
 					  \node[main node] (x) {$X$};
@@ -225,11 +255,14 @@ Considere os nós $X$, $Y$, $Z$. Para o caso em que há um arco $X \rightarrow Y
 					;
 					\end{tikzpicture}
         \caption{Efeito Comum}
-        \label{fig:B}
+        \label{fig:trilha_ec}
     \end{subfigure}
-    \caption{ROC curve of failure detection;}
-    \label{fig:roc_curve}
+    \caption{Trilhas de $X$ a $Y$ passando por $Z$}
+    \label{fig:trilhas}
 \end{figure}
+
+
+
 
 
 \end{document}
