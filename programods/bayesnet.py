@@ -333,7 +333,7 @@ class BayesNet:
             elif node in observed_set:
                 color = 'grey'
             else:
-                color = 'green'
+                color = 'red'
             network.node(node, color=color)
 
         for node in self:
