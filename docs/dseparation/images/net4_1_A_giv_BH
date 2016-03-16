@@ -1,0 +1,19 @@
+digraph {
+	G [color=green]
+	H [color=grey]
+	C [color=green]
+	E [color=green]
+	D [color=green]
+	F [color=green]
+	A [color=blue]
+	B [color=grey]
+		F -> G
+		F -> H
+		E -> H
+		A -> C
+		B -> E
+		A -> D
+		B -> D
+		C -> F
+		D -> F
+}

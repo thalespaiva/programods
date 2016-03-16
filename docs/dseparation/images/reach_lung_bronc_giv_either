@@ -1,0 +1,18 @@
+digraph {
+	xray [color=red]
+	dysp [color=green]
+	tub [color=green]
+	lung [color=blue]
+	asia [color=green]
+	bronc [color=blue]
+	smoke [color=green]
+	either [color=grey]
+		either -> xray
+		bronc -> dysp
+		either -> dysp
+		asia -> tub
+		smoke -> lung
+		smoke -> bronc
+		lung -> either
+		tub -> either
+}

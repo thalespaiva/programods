@@ -261,8 +261,113 @@ E agora podemos estender a definição para conjuntos de variáveis, chegando on
     \label{fig:trilhas}
 \end{figure}
 
+\section{Resolução dos exercícios teóricos}
 
+\begin{exerc} Prove que o conjunto formado pelos pais, filhos, e cônjuges de um certo nó formam um \emph{markov blanket} desse nó.
 
+Seja $N$ um nó e $\set{M}$ o conjunto de nós do enunciado, relacionados a $N$. É fácil notar que todo vértice $V \in \set{G} - \set{M} - {N}$ é d-separado de $N$ por $\set(M)$. Isso pois, como os nós de $\set{M}$ foram observados, é preciso encontrar uma trilha da forma $ V \leftrightharpoons \ldots \leftrightharpoons  V_{n-1} \rightarrow V_n \leftarrow N$, com apenas $V_n \in \set{M}$. Porém, tal trilha nunca poderia ser encontrada já que $V_n$ deve ser filho de $N$ e $V_{n-1}$ ser pai de um filho e portanto, estar em $\set{M}$.
+\end{exerc}
 
+\section{Implementação em Python: \texttt{bayesnet.py} revisitado}
+
+Para esta lista, além de melhorar o código entregue na semana passada, implementei os seguites métodos na classe \verb|BayesNet|:
+
+\begin{python}
+class BayesNet:
+    def child_nodes(self, node_name)
+    def reachable_via_active_trails(self, source_vars, observed_set)
+    def is_d_separated(self, this_set, that_set, observed_set)
+    def draw_reachable_via_..._trails(self, tgt, src_vars, obs_set)
+\end{python}
+
+O método \verb|reachable_via_active_trails(self, source_vars, observed_set| implementa quase que diretamente o algoritmo do livro da Koller, porém, faz a busca a partir de um conjunto de nós, não apenas um. Seu código é dado abaixo e é auto-explicativo. Decidi colocar apenas para ficar fácil de compará-lo com o do livro sem ter que abrir o código-fonte do módulo, que está ficando grande.
+
+\begin{python}
+    def reachable_via_active_trails(self, source_vars, observed_set):
+        observed_set = set(observed_set)
+        up, down = 'up', 'down'
+
+        obs_ancestors = self.get_ancestors_set(observed_set)
+
+        schedule = [(source_var, up) for source_var in source_vars]
+        visited = set()
+        reachable = set()
+
+        def schedule_parents(node):
+            for n in self.parent_nodes(node):
+                schedule.append((n, up))
+
+        def schedule_children(node):
+            for n in self.child_nodes(node):
+                schedule.append((n, down))
+
+        while schedule:
+            visiting = schedule.pop()
+            if visiting not in visited:
+                node, direct = visiting
+                if node not in observed_set:
+                    reachable.add(node)
+                visited.add(visiting)
+                if direct == up and node not in observed_set:
+                    schedule_parents(node)
+                    schedule_children(node)
+                elif direct == down:
+                    if node not in observed_set:
+                        schedule_children(node)
+                    if node in obs_ancestors:
+                        schedule_parents(node)
+
+        return reachable
+\end{python}
+
+O método que decide se dois conjuntos são d-separados, apenas chama o método acima, sobre um dos conjuntos e faz checa se a interseção da saída com o outro conjunto é vazia.
+
+Escrevi o método \verb|draw_reachable_via_active_trails| para testar as funções. Ele mostra um grafo do colorido do resultado de uma chamada de \verb|reachable_via_active_trails|. Por exemplo, para ver os nós que se pode alcançar a partir dos nós \verb|lung| e \verb|bronc|, dado que \verb|either| foi observado, faz-se:
+\begin{verbatim}
+asia.draw_reachable_via_active_trails('images/img', ['lung', 'bronc'], ['either'])
+\end{verbatim}
+
+E na saída, os nós observados têm contorno cinza, os alcançáveis têm cor verde, os raízes têm cor azul, e os inalcançáveis têm cor vermelha. Achei que foi bem útil para corrigir o programa. Na Figura~\ref{fig:alcanc}, pode-se ver o resultado da chamada acima.
+
+\begin{figure}[hbtp]
+\centering
+\includegraphics[scale=0.5]{images/reach_lung_bronc_giv_either.png}
+\caption{Alcançáveis em relação a \texttt{lung} e \texttt{bronc} dado \texttt{either}}
+\label{fig:alcanc}
+\end{figure}
+
+Alguns exemplos de uso do método \verb|is_d_separated| são dados abaixo.
+
+\begin{verbatim}
+In [5]: import bayesnet as bn
+In [6]: net4_1 = bn.BayesNet.init_from_bif_file('../examples/dseparation/ex4.1/ex4.1.bif')
+In [8]: net4_1.is_d_separated(['A'], ['E'], ['B', 'H'])
+Out[8]: False
+In [9]: net4_1.is_d_separated(['G'], ['E'], ['D'])
+Out[9]: False
+In [10]: net4_1.is_d_separated(['A', 'B'], ['G', 'H'], ['F'])
+Out[10]: False
+\end{verbatim}
+
+Compare os resultados obtidos com os grafos pintados de acordo com a acessibilidade dos nós nas Figuras~\ref{fig:alcancA_BH},~\ref{fig:alcancG_D}, e~\ref{fig:alcancAB_F}.
+
+\begin{figure}[hbtp]
+\centering
+\includegraphics[scale=0.5]{images/net4_1_A_giv_BH.png}
+\caption{A partir de \texttt{A} dados \texttt{B, H}}
+\label{fig:alcancA_BH}
+\end{figure}
+\begin{figure}[hbtp]
+\centering
+\includegraphics[scale=0.5]{images/net4_1_G_giv_D.png}
+\caption{A partir de \texttt{G} dado \texttt{D}}
+\label{fig:alcancG_D}
+\end{figure}
+\begin{figure}[hbtp]
+\centering
+\includegraphics[scale=0.5]{images/net4_1_AB_giv_F.png}
+\caption{A partir de \texttt{A, B} dado \texttt{F}}
+\label{fig:alcancAB_F}
+\end{figure}
 
 \end{document}
