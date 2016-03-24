@@ -2,25 +2,8 @@
 
 import itertools as it
 
-
-class Variable:
-
-    def __init__(self, name, type_, domain):
-        self.name = name
-        self.type = type_
-        self.domain = domain
-
-    def __str__(self):
-        out = []
-
-        out.append('[V] Name : %s\n' % self.name)
-        out.append('    Type : %s\n' % self.type)
-        out.append('    Dom  : %s' % self.domain)
-
-        return "".join(out)
-
-    def __repr__(self):
-        return "Variable<" + self.name + ">"
+from bayesnet import Variable
+from bayesnet import Distribution
 
 
 class UAI_Parser:
@@ -68,7 +51,10 @@ class UAI_Parser:
             values = map(float, token_extractor())
             domains_prod = it.product(*[variables[n].domain for n in clique])
 
-            potentials[clique] = dict(zip(domains_prod, values))
+            potential = Distribution([variables[name] for name in clique], ())
+            potential.set_values(dict(zip(domains_prod, values)))
+
+            potentials[clique] = potential
 
         uai_file.close()
 
