@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+import itertools as it
+
 
 class Variable:
 
@@ -41,7 +43,9 @@ class UAI_Parser:
         n_vars = int(get_tokens_from_next_line().pop())
         vars_cards = map(int, get_tokens_from_next_line())
         name_zip_card = zip(map(str, range(n_vars)), vars_cards)
+
         variables = tuple(Variable(n, '_', range(c)) for n, c in name_zip_card)
+        variables_dict = {var.name: var for var in variables}
 
         n_cliques = int(get_tokens_from_next_line().pop())
         cliques = []
@@ -49,14 +53,24 @@ class UAI_Parser:
             clique_info = get_tokens_from_next_line()
             cliques.append(tuple(clique_info[1:]))
 
-        return (variables, cliques)
+        return (variables_dict, cliques)
 
     def parse(uai_file_path):
         uai_file = open(uai_file_path)
         token_extractor = UAI_Parser.get_per_line_token_extractor(uai_file)
-        ret = UAI_Parser.parse_preamble(token_extractor)
-        uai_file.close()
-        return ret
+
+        variables, cliques = UAI_Parser.parse_preamble(token_extractor)
+
+        potentials = {}  # { tuple_of_vars_names: { valuation: value } }
+        for clique in cliques:
+            token_extractor()  # to consume a useless len(values) line
+
+            values = map(float, token_extractor())
+            domains_prod = it.product(*[variables[n].domain for n in clique])
+
+            potentials[clique] = dict(zip(domains_prod, values))
+
+        return variables, potentials
 
 
 if __name__ == "__main__":
