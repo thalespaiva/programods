@@ -116,4 +116,22 @@ class MarkovNet:
 
 
 if __name__ == "__main__":
-    pass
+    import sys
+    import math
+
+    if len(sys.argv) < 2 or len(sys.argv) > 3:
+        print('Usage: %s <markov_net_description.uai> [evidence.uai.evid]'
+              % sys.argv[0])
+        sys.exit(1)
+
+    markov_net = MarkovNet.init_from_uai_file(sys.argv[1])
+
+    if len(sys.argv) == 3:
+        evidences = UAI_Parser.parse_evidence_file(sys.argv[2])
+        for i, evidence in enumerate(evidences):
+            z = markov_net.get_partition_function(evidence)
+            print("partition function log10 for evid %2d: %.6f" %
+                  (i + 1, math.log10(z)))
+    else:
+        z = markov_net.get_partition_function()
+        print("partition function: %.6f" % math.log10(z))
