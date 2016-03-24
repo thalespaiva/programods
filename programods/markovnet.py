@@ -51,7 +51,7 @@ class UAI_Parser:
             values = map(float, token_extractor())
             domains_prod = it.product(*[variables[n].domain for n in clique])
 
-            potential = Distribution([variables[name] for name in clique], ())
+            potential = Distribution([variables[name] for name in clique], [])
             potential.set_values(dict(zip(domains_prod, values)))
 
             potentials[clique] = potential
@@ -71,6 +71,24 @@ class MarkovNet:
         variables, potentials = UAI_Parser.parse(uai_file_path)
 
         return MarkovNet(variables, potentials)
+
+    def get_partition_function(self):
+        total = 0
+
+        variables = self.variables.values()
+        domains_product = it.product(*[v.domain for v in variables])
+        var_names = [v.name for v in variables]
+
+        for valuation in domains_product:
+            var_valuation = dict(zip(var_names, valuation))
+            prod = 1
+            for potential in self.potentials.values():
+                prod *= potential.evaluate(var_valuation)
+            print(valuation, prod)
+            total += prod
+
+        return total
+
 
 if __name__ == "__main__":
     pass
