@@ -122,6 +122,9 @@ class Distribution:
     def add_value(self, valuation, value):
         self.values[valuation] = value
 
+    def set_values(self, values):
+        self.values = values
+
     def evaluate(self, var_valuation):
         valuation = tuple(var_valuation[v.name] for v in self.variables)
 
