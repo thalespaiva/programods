@@ -92,19 +92,24 @@ class MarkovNet:
 
         return MarkovNet(variables, potentials)
 
-    def get_partition_function(self):
+    def get_variables_domains_product(self, evidence={}):
+        domains = []
+        for var in self.variables.values():
+            if var.name in evidence.keys():
+                domains.append([evidence[var.name]])
+            else:
+                domains.append(var.domain)
+        return it.product(*domains)
+
+    def get_partition_function(self, evidence={}):
         total = 0
 
-        variables = self.variables.values()
-        domains_product = it.product(*[v.domain for v in variables])
-        var_names = [v.name for v in variables]
-
-        for valuation in domains_product:
+        var_names = [v.name for v in self.variables.values()]
+        for valuation in self.get_variables_domains_product(evidence):
             var_valuation = dict(zip(var_names, valuation))
             prod = 1
             for potential in self.potentials.values():
                 prod *= potential.evaluate(var_valuation)
-            print(valuation, prod)
             total += prod
 
         return total
