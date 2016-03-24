@@ -70,8 +70,21 @@ class UAI_Parser:
 
             potentials[clique] = dict(zip(domains_prod, values))
 
+        uai_file.close()
+
         return variables, potentials
 
+
+class MarkovNet:
+
+    def __init__(self, variables, potentials):
+        self.variables = variables
+        self.potentials = potentials
+
+    def init_from_uai_file(uai_file_path):
+        variables, potentials = UAI_Parser.parse(uai_file_path)
+
+        return MarkovNet(variables, potentials)
 
 if __name__ == "__main__":
     pass
