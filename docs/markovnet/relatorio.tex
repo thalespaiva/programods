@@ -26,7 +26,7 @@
 \usepackage{xspace}
 \usepackage{indentfirst}
 \usepackage{placeins}
-
+\usepackage{hyperref}
 
 \usepackage{tikz}
 \usetikzlibrary{arrows}
@@ -176,7 +176,6 @@ Suponha que $X$ e $Y$ não são d-separados por $(\text{an}(X) \cup \text{an}(Y)
 \par{$4 \Rightarrow 1$}.
 Suponha que $X$ e $Y$ não são d-separados por $P := (\text{pa}(X) \cup \text{pa}(Y))\setminus \{X, Y\}$. Então, ou $X$ e $Y$ são adjacentes, ou existe um descendente de $X$ e de $Y$ que está em $P$, para permitir que haja troca de informação entre $X$ e $Y$ através de uma estrutura em v. Mas, se existir um descendente de $X$ e de $Y$ que também é pai de $X$ ou de $Y$, então há um ciclo no DAG, o que é proibido. Logo, $X$ e $Y$ são adjacentes. 
 
-
 \begin{exerc}
 Suponha que seja dado um oráculo que responde a perguntas do tipo: 
 $$
@@ -195,5 +194,48 @@ Descreva um algoritmo para decidir qual dos grafos da Figura~\ref{fig:grafos_ex2
 \emph{Considerei que certamente um dos grafos representa $I$.}
 
 \emph{Resposta.} Primeiro pergunte ao oráculo se $B \ind C | \emptyset $. Se sim, então o segundo grafo representa $I$. Se não, então pergunte se $B \ind C | A$. Se sim, então o primeiro representa $I$. Se não, então $I$ é representado pelo terceiro grafo.
+
+
+\pagebreak
+\section{Implementação em Python: \texttt{markovnet.py}}
+
+Implementei um módulo em Python para tratar de redes de Markov. Reutilizei do módulo \verb|bayesnet.py| as classes \verb|Variable| e \verb|Distribution|, para os potenciais. O novo módulo \verb|markovnet.py| tem duas classes, \verb|UAI_Parser| e \verb|MarkovNet|. A primeira trata do parsing de arquivos UAI, tanto os de descrição quanto os de evidência. A segunda serve, é claro, para representar redes de Markov. As interfaces das duas são dadas abaixo.
+
+\begin{python}
+class UAI_Parser:
+  def get_per_line_token_extractor(uai_file)
+  def parse_preamble(get_tokens_from_next_line)
+  def parse(uai_file_path)
+  def parse_evidence_file(evidence_file_path)
+
+class MarkovNet:
+  def __init__(self, variables, potentials)
+  def init_from_uai_file(uai_file_path)
+  def get_variables_domains_product(self, evidence={})
+  def get_partition_function(self, evidence={})
+\end{python}
+
+Foi pedido para que implementássemos o cálculo de funções de partição. O método para isso é o \verb|get_partition_function|. Para testar com os arquivos da Probabilistic Inference Challenge 2011, implementei o cálculo de funções de partição com evidências e sem evidências. A saída deste método é dada tirando o logaritmo na base 10 da função de partição.
+
+O módulo também pode ser rodado em linha de comando. Para isso, deve-se passar um arquivo de descrição de uma rede de Markov como primeiro argumento e, opcionalmente, um arquivo de evidências. Um exemplo de uma execução é:
+\begin{verbatim}
+~/programods $ ./programods/markovnet.py examples/markovnet/grid3x3/grid
+3x3.uai examples/markovnet/grid3x3/grid3x3.uai.evid
+
+partition function log10 for evid  1: 14.889867
+\end{verbatim}
+
+Que, como pode ser visto em \url{cs.huji.ac.il/project/PASCAL/examples/grid3x3.uai.PR}, é a saída esperada para esta execução.
+
+Outro exemplo, tirado da rede Miconception do livro da Koller, sem arquivo de evidências, é:
+\begin{verbatim}
+~/programods $ ./programods/markovnet.py examples/markovnet/misconception/
+misconception.uai
+
+partition function: 6.857443
+\end{verbatim}
+
+E $10^{6.857443} \approx 7201832$ que é próximo de $7201840$, dado no livro da Koller. A saber, o erro é somente de aproximação, pois sem tirar o logaritmo, os resultados são idênticos.
+
 
 \end{document}
