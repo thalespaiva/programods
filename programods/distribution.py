@@ -27,6 +27,17 @@ class Variable:
     def get_valuation(variables, values):
         return dict(zip([var.name for var in variables], values))
 
+    def get_consistent_valuation(variables, values):
+        valuation = {}
+
+        for name, value in zip([var.name for var in variables], values):
+            if name not in valuation:
+                valuation[name] = value
+            elif valuation[name] != value:
+                return None
+
+        return valuation
+
     @property
     def cardinality(self):
         return len(self.domain)
