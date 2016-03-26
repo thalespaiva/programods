@@ -30,7 +30,7 @@ class Variable:
         return len(self.domain)
 
 
-class Distribution:
+class ProbabilityModel:
 
     def __init__(self, variables, probabilities):
         # { (0,0,0): 0.75, (0,0,1): 0.25, }
@@ -71,7 +71,7 @@ class Distribution:
 
                 probabilities[key] = float(str_prob)
 
-        return Distribution(tuple(variables_list), probabilities)
+        return ProbabilityModel(tuple(variables_list), probabilities)
 
     def query_probability(self, expression):
         total_probability = 0
@@ -318,6 +318,7 @@ class Query:
         elif line.startswith(Query.DUMP_COND_TYPE):
             return Query.resolve_dump_cond(line, model)
 
+
 if __name__ == "__main__":
     import sys
     import re
@@ -331,7 +332,7 @@ if __name__ == "__main__":
     model_file_name = sys.argv[1]
     queries_file_name = sys.argv[2]
 
-    model = Distribution.init_from_file(model_file_name)
+    model = ProbabilityModel.init_from_file(model_file_name)
     queries_file = open(queries_file_name, 'r')
 
     for line in queries_file:
