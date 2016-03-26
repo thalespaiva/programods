@@ -24,9 +24,6 @@ class Variable:
     def __repr__(self):
         return "Variable<" + self.name + ">"
 
-    def get_valuation(variables, values):
-        return dict(zip([var.name for var in variables], values))
-
     def get_consistent_valuation(variables, values):
         valuation = {}
 
