@@ -2,8 +2,8 @@
 
 import itertools as it
 
-from bayesnet import Variable
-from bayesnet import Distribution
+from distribution import Variable
+from distribution import Distribution
 
 
 class UAI_Parser:
@@ -27,7 +27,7 @@ class UAI_Parser:
         vars_cards = map(int, get_tokens_from_next_line())
         name_zip_card = zip(map(str, range(n_vars)), vars_cards)
 
-        variables = tuple(Variable(n, '_', range(c)) for n, c in name_zip_card)
+        variables = tuple(Variable(n, range(c)) for n, c in name_zip_card)
         variables_dict = {var.name: var for var in variables}
 
         n_cliques = int(get_tokens_from_next_line().pop(0))

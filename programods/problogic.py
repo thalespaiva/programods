@@ -1,33 +1,7 @@
 #!/usr/bin/python3
 
 
-class Variable:
-
-    def __init__(self, name, domain_or_cardinality):
-        self.name = name
-
-        if isinstance(domain_or_cardinality, int):
-            self.domain = range(domain_or_cardinality)
-        else:
-            self.domain = domain_or_cardinality
-
-    def __str__(self):
-        out = []
-
-        out.append('[V] Name : %s\n' % self.name)
-        out.append('    Dom  : %s' % self.domain)
-
-        return "".join(out)
-
-    def __repr__(self):
-        return "Variable<" + self.name + ">"
-
-    def get_valuation(variables, values):
-        return dict(zip([var.name for var in variables], values))
-
-    @property
-    def cardinality(self):
-        return len(self.domain)
+from distribution import Variable
 
 
 class ProbabilityModel:
