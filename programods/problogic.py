@@ -3,15 +3,31 @@
 
 class Variable:
 
-    def __init__(self, name, cardinality):
+    def __init__(self, name, domain_or_cardinality):
         self.name = name
-        self.cardinality = cardinality
+
+        if isinstance(domain_or_cardinality, int):
+            self.domain = range(domain_or_cardinality)
+        else:
+            self.domain = domain_or_cardinality
+
+    def __str__(self):
+        out = []
+
+        out.append('[V] Name : %s\n' % self.name)
+        out.append('    Dom  : %s' % self.domain)
+
+        return "".join(out)
+
+    def __repr__(self):
+        return "Variable<" + self.name + ">"
 
     def get_valuation(variables, values):
         return dict(zip([var.name for var in variables], values))
 
-    def __str__(self):
-        return self.name
+    @property
+    def cardinality(self):
+        return len(self.domain)
 
 
 class Distribution:
@@ -42,8 +58,8 @@ class Distribution:
                 reading_dist_flag = True
 
             elif line.startswith('var'):
-                var_name, var_dim = re.findall(var_regex, line)[0]
-                variables_list.append(Variable(var_name, var_dim))
+                var_name, var_card = re.findall(var_regex, line)[0]
+                variables_list.append(Variable(var_name, var_card))
 
             elif reading_dist_flag:
                 if line.startswith('.'):

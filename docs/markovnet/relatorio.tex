@@ -183,7 +183,7 @@ X \ind Y | Z?.
 $$
 Descreva um algoritmo para decidir qual dos grafos da Figura~\ref{fig:grafos_ex2} representa as relações de independência induzida pelo oráculo, denotado por $I$.
 
-\end{exerc}
+
 \begin{figure}[hbtp]
 \centering
 \includegraphics[scale=0.7]{images/exerc2_graphs.png}
@@ -194,7 +194,29 @@ Descreva um algoritmo para decidir qual dos grafos da Figura~\ref{fig:grafos_ex2
 \emph{Considerei que certamente um dos grafos representa $I$.}
 
 \emph{Resposta.} Primeiro pergunte ao oráculo se $B \ind C | \emptyset $. Se sim, então o segundo grafo representa $I$. Se não, então pergunte se $B \ind C | A$. Se sim, então o primeiro representa $I$. Se não, então $I$ é representado pelo terceiro grafo.
+\end{exerc}
 
+\FloatBarrier
+\textbf{Não fiz o abaixo...}
+\begin{exerc}
+Prove a seguinte versão mais fraca to Teorema da Fatoração de Redes de Markov: se $p(\mathcal{V})$ é uma distribuição conjunta que se fatora em:
+$$
+p(\mathcal{V}) = \frac{1}{Z}\prod_{j=1}^m \phi_j(\mathcal{C}_j),
+$$
+onde os $\mathcal{C}_j$ são os cliques maximais de um grafo $G$, então $(G, p)$ satisfaz as propriedades de Markov locais.
+
+\emph{Demonstração.} Sabemos, pela proposição 1 das notas de aula, que:
+
+Os conjuntos de variáveis $\set{X}$ e $\set{Y}$ são condicionalmente independentes de um conjunto de variáveis $\set{Z}$, se e somente se, existem dois potenciais $\phi_1(\set{X}, \set{Y})$ e $\phi_2(\set{Y}, \set{Z})$ tais que:
+$$
+p(\set{X}, \set{Y}) = \phi_1(\set{X}, \set{Y}) \phi_2(\set{Y}, \set{Z}).
+$$
+
+Então seja $\set{X} = \{X\}$, e $\set{Y}$ um conjunto qualquer que não contém $\set{X}$ nem $N(X)$, os vizinhos de $X$. Queremos provar que $\set{X} \ind \set{Y} | N(X)$.
+
+
+
+\end{exerc}
 
 \pagebreak
 \section{Implementação em Python: \texttt{markovnet.py}}
