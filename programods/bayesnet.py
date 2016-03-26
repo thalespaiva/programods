@@ -3,6 +3,8 @@
 import itertools as it
 import pyparsing as pp
 
+from problogic import Variable
+
 
 class BIF_Parser:
 
@@ -73,11 +75,11 @@ class BIF_Parser:
         var_name = item.pop(0)
         var_info = item.pop(0)
         var_type_info = var_info.pop(0)
-        var_type = var_type_info.pop(0)
+        var_type_info.pop(0)  # get rid of useless type (obviously discrete)
         # var_domain_size = var_type_info.pop(0)
         var_domain = var_info.pop(0)
 
-        return Variable(var_name, var_type, var_domain)
+        return Variable(var_name, var_domain)
 
     def _get_prob_from_data_item(item, variables):
         vars_info = item.pop(0)
@@ -229,26 +231,6 @@ class Distribution:
 
         for k, v in self.values.items():
             self.values[k] = v/total
-
-
-class Variable:
-
-    def __init__(self, name, type_, domain):
-        self.name = name
-        self.type = type_
-        self.domain = domain
-
-    def __str__(self):
-        out = []
-
-        out.append('[V] Name : %s\n' % self.name)
-        out.append('    Type : %s\n' % self.type)
-        out.append('    Dom  : %s' % self.domain)
-
-        return "".join(out)
-
-    def __repr__(self):
-        return "Variable<" + self.name + ">"
 
 
 class BayesNet:
