@@ -30,7 +30,12 @@ class Variable:
     def get_consistent_valuation(variables, values):
         valuation = {}
 
-        for name, value in zip([var.name for var in variables], values):
+        if isinstance(variables[0], str):
+            var_names = variables
+        else:
+            var_names = [var.name for var in variables]
+
+        for name, value in zip(var_names, values):
             if name not in valuation:
                 valuation[name] = value
             elif valuation[name] != value:
@@ -96,22 +101,6 @@ class Distribution:
 
         return ''.join(out)
 
-    def valuate_consist(self, valuation, variable, value):
-        if not valuation.get(variable) or valuation.get(variable) == value:
-            valuation[variable] = value
-            return self.evaluate(valuation)
-        else:
-            return 0
-
-    def gen_consistent_valuation_or_none(self, var_valuation_tuples):
-        valuation = {}
-        for var, value in var_valuation_tuples:
-            if not valuation.get(var) or valuation.get(var) == value:
-                valuation[var] = value
-            else:
-                return None
-        return valuation
-
     def __mod__(self, variable):
         var_name = variable.name
 
@@ -124,15 +113,15 @@ class Distribution:
 
         factor = 1/len(variable.domain)
 
-        for elim_valuation in it.product(*domains_list):
-            var_valuation = zip(elim_var_names, elim_valuation)
-            consist_val = self.gen_consistent_valuation_or_none(var_valuation)
+        for elim_vals in it.product(*domains_list):
+            consist_val = Variable.get_consistent_valuation(elim_var_names,
+                                                            elim_vals)
             if consist_val:
                 sum_ = 0
                 for value in variable.domain:
                     consist_val[var_name] = value
                     sum_ += self.evaluate(consist_val)
-                elim_func.add_value(elim_valuation, sum_*factor)
+                elim_func.add_value(elim_vals, sum_*factor)
 
         return elim_func
 
@@ -142,12 +131,11 @@ class Distribution:
         product = Distribution(main_vars_set, cond_vars_set)
 
         var_names = [var.name for var in product.variables]
-        for valuation in it.product(*[v.domain for v in product.variables]):
-            var_valuation = zip(var_names, valuation)
-            consist_val = self.gen_consistent_valuation_or_none(var_valuation)
+        for values in it.product(*[v.domain for v in product.variables]):
+            consist_val = Variable.get_consistent_valuation(var_names, values)
             if consist_val:
-                val = self.evaluate(consist_val)*probab.evaluate(consist_val)
-                product[valuation] = val
+                value = self.evaluate(consist_val)*probab.evaluate(consist_val)
+                product[values] = value
 
         return product
 
@@ -157,12 +145,11 @@ class Distribution:
         division = Distribution(main_vars_set, cond_vars_set)
 
         var_names = [var.name for var in division.variables]
-        for valuation in it.product(*[v.domain for v in division.variables]):
-            var_valuation = zip(var_names, valuation)
-            consist_val = self.gen_consistent_valuation_or_none(var_valuation)
+        for values in it.product(*[v.domain for v in division.variables]):
+            consist_val = Variable.get_consistent_valuation(var_names, values)
             if consist_val:
                 val = self.evaluate(consist_val)*probab.evaluate(consist_val)
-                division[valuation] = val
+                division[values] = val
 
         return division
 
