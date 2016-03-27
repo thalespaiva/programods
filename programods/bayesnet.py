@@ -94,12 +94,12 @@ class BIF_Parser:
             prob_table = probs_info[1]
             domains_list = [main_var.domain] + [v.domain for v in cond_vars]
             for valuation, prob in zip(it.product(*domains_list), prob_table):
-                probability.add_value(tuple(valuation), float(prob))
+                probability[tuple(valuation)] = float(prob)
         else:
             for cond_valuation, probs in probs_info:
                 valuations = [[d] + cond_valuation for d in main_var.domain]
                 for valuation, prob in zip(valuations, probs):
-                    probability.add_value(tuple(valuation), float(prob))
+                    probability[tuple(valuation)] = float(prob)
 
         return probability
 
