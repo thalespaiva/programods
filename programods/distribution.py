@@ -49,6 +49,11 @@ class Variable:
     def get_names_string(variables, num_chars=None):
         return ','.join(Variable.get_names(variables, num_chars))
 
+    def domains_product(variables):
+        domains = [var.domain for var in variables]
+        for values in it.product(*domains):
+            yield values
+
     @property
     def cardinality(self):
         return len(self.domain)
@@ -86,9 +91,6 @@ class Distribution:
     def __str__(self):
         out = []
 
-        main_domains = [main.domain for main in self.main_vars]
-        cond_domains = [cond.domain for cond in self.cond_vars]
-
         out.append("[+] Distribution(")
         out.append("%s" % Variable.get_names_string(self.main_vars))
         out.append(" | ")
@@ -96,13 +98,13 @@ class Distribution:
         out.append(")\n")
         out.append("%10s " % Variable.get_names_string(self.cond_vars, 3))
 
-        for main_val in it.product(*main_domains):
+        for main_val in Variable.domains_product(self.main_vars):
             out.append("| %-8s" % ','.join(map(str, main_val)))
 
-        for cond_val in it.product(*cond_domains):
+        for cond_val in Variable.domains_product(self.cond_vars):
             out.append("\n")
             out.append("%10s " % ','.join(map(str, cond_val)))
-            for main_val in it.product(*main_domains):
+            for main_val in Variable.domains_product(self.main_vars):
                 out.append("| %.4f  " % self[main_val + cond_val])
 
         return ''.join(out)
@@ -115,11 +117,10 @@ class Distribution:
         elim_func = Distribution(main_elim_vars, cond_elim_vars)
 
         elim_var_names = [var.name for var in elim_func.variables]
-        domains_list = [v.domain for v in elim_func.variables]
 
         factor = 1/len(variable.domain)
 
-        for elim_vals in it.product(*domains_list):
+        for elim_vals in Variable.domains_product(elim_func.variables):
             consist_val = Variable.get_consistent_valuation(elim_var_names,
                                                             elim_vals)
             if consist_val:
@@ -136,8 +137,8 @@ class Distribution:
         cond_vars_set = self.cond_vars + probab.cond_vars
         product = Distribution(main_vars_set, cond_vars_set)
 
-        var_names = [var.name for var in product.variables]
-        for values in it.product(*[v.domain for v in product.variables]):
+        var_names = Variable.get_names(product.variables)
+        for values in Variable.domains_product(product.variables):
             consist_val = Variable.get_consistent_valuation(var_names, values)
             if consist_val:
                 value = self.evaluate(consist_val)*probab.evaluate(consist_val)
@@ -151,7 +152,7 @@ class Distribution:
         division = Distribution(main_vars_set, cond_vars_set)
 
         var_names = [var.name for var in division.variables]
-        for values in it.product(*[v.domain for v in division.variables]):
+        for values in Variable.domains_product(division.variables):
             consist_val = Variable.get_consistent_valuation(var_names, values)
             if consist_val:
                 val = self.evaluate(consist_val)*probab.evaluate(consist_val)
