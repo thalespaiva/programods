@@ -40,6 +40,15 @@ class Variable:
 
         return valuation
 
+    def get_names(variables, num_chars=None):
+        if not num_chars:
+            return [var.name for var in variables]
+        else:
+            return [var.name[:num_chars] for var in variables]
+
+    def get_names_string(variables, num_chars=None):
+        return ','.join(Variable.get_names(variables, num_chars))
+
     @property
     def cardinality(self):
         return len(self.domain)
@@ -81,12 +90,12 @@ class Distribution:
         cond_domains = [cond.domain for cond in self.cond_vars]
 
         out.append("[+] Distribution(")
-        out.append("%s" % ','.join(map(lambda x: x.name, self.main_vars)))
+        out.append("%s" % Variable.get_names_string(self.main_vars))
         out.append(" | ")
-        out.append("%s" % ','.join(map(lambda x: x.name, self.cond_vars)))
+        out.append("%s" % Variable.get_names_string(self.cond_vars))
         out.append(")\n")
-        out.append("%10s " % ','.join(map(lambda x: x.name[:3],
-                                          self.cond_vars)))
+        out.append("%10s " % Variable.get_names_string(self.cond_vars, 3))
+
         for main_val in it.product(*main_domains):
             out.append("| %-8s" % ','.join(map(str, main_val)))
 
