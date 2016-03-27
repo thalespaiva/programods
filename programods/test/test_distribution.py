@@ -1,5 +1,12 @@
 
 from ..distribution import Variable
+from ..distribution import Distribution
+
+FLOAT_ERROR = 1e-10
+
+
+def assert_almost_equals(a, b):
+    assert abs(a - b) < FLOAT_ERROR
 
 
 class TestVariable:
@@ -24,3 +31,15 @@ class TestVariable:
 
         assert X.cardinality == 8
         assert Y.cardinality == 3
+
+
+class TestDistribution:
+
+    def test_evaluate(self):
+        A = Variable('A', 3)
+        values = {(1,): 0.3, (2,): 0.6, (3,): 0.1}
+
+        d = Distribution([A], [], values)
+        assert_almost_equals(d.evaluate({A.name: 1}), 0.3)
+        assert_almost_equals(d.evaluate({A.name: 2}), 0.6)
+        assert_almost_equals(d.evaluate({A.name: 3}), 0.1)
