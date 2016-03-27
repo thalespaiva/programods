@@ -61,26 +61,32 @@ class Variable:
 
 class Distribution:
 
-    def __init__(self, main_vars, cond_vars):
+    def __init__(self, main_vars, cond_vars, values=None):
         self.main_vars = main_vars
         self.cond_vars = cond_vars
 
-        self.values = {}
+        if values is None:
+            self.values = {}
+        else:
+            self.set_values(values)
 
     @property
     def variables(self):
         return self.main_vars + self.cond_vars
 
     def __getitem__(self, key):
+        if not isinstance(key, tuple):
+            raise TypeError('Keys should be tuples. len(key) == 1?')
         return self.values.get(key, 0)
 
     def __setitem__(self, key, value):
+        if not isinstance(key, tuple):
+            raise TypeError('Keys should be tuples. len(key) == 1?')
         self.values[key] = value
 
-    def add_value(self, valuation, value):
-        self.values[valuation] = value
-
     def set_values(self, values):
+        if not all([isinstance(key, tuple) for key in values]):
+            raise TypeError('All keys should be tuples. len(key) == 1?')
         self.values = values
 
     def evaluate(self, var_valuation):
@@ -128,7 +134,7 @@ class Distribution:
                 for value in variable.domain:
                     consist_val[var_name] = value
                     sum_ += self.evaluate(consist_val)
-                elim_func.add_value(elim_vals, sum_*factor)
+                elim_func[elim_vals] = sum_*factor
 
         return elim_func
 
