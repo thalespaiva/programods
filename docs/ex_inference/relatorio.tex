@@ -166,7 +166,7 @@ $$
 
 \emph{Demonstração.} Sabemos que a probabilidade condicional 
 $$
-p \left( X|ne(X) \right) = \frac{p\left( X, ne(X) \right)}{p \left( ne(X) \right)}.
+p \left( X|ne(X) \right) = \frac{p\left( X \cup ne(X) \right)}{p \left( ne(X) \right)}.
 $$
 
 Também sabemos que, para um subconjunto $\set{X}$ de $\set{V}$, temos
@@ -174,24 +174,77 @@ $$
 p(\set{X}) = \frac{1}{Z} \sum \limits_{X \notin \set{X} } \left( \prod_{j: \mathcal{C}_j \in \mathcal{C}} \phi_j(\set{C}_j) \right).
 $$
 
-Então, para calcular, $p \left( X|ne(X) \right)$, vamos primeiro calcular $ p\left( X, ne(X) \right) $ e $p \left( ne(X) \right)$, para depois simplificar.
+Então, para calcular, $p \left( X|ne(X) \right)$, vamos primeiro calcular $ p\left( X \cup ne(X) \right) $ e $p \left( ne(X) \right)$, para depois simplificar.
 
 \begin{align*}
-p\left( X, ne(X) \right) &= \frac{1}{Z} \sum \limits_{A \notin \{X, ne(X) \} } \left( \prod_{j} \phi_j(\set{C}_j) \right) \\
-&= \frac{1}{Z} \prod_{j: X \in \set{C}_j} \phi_j(\set{C}_j) \sum \limits_{A \notin \{ X, ne(X) \} } \left( \prod_{j: X \notin \set{C}_j} \phi_j(\set{C}_j) \right). \\
+p\left( X \cup ne(X) \right) &= \frac{1}{Z} \sum \limits_{A \notin \{X \cup ne(X) \} } \left( \prod_{j} \phi_j(\set{C}_j) \right) \\
+&= \frac{1}{Z} \prod_{j: X \in \set{C}_j} \phi_j(\set{C}_j) \sum \limits_{A \notin \{ X \cup ne(X) \} } \left( \prod_{j: X \notin \set{C}_j} \phi_j(\set{C}_j) \right). \\
 \\
 p\left(ne(X) \right) &= \frac{1}{Z} \sum \limits_{A \notin ne(X) } \left( \prod_{j} \phi_j(\set{C}_j) \right) \\
-&= \frac{1}{Z} \sum_X \left( \prod_{j: X \in \set{C}_j} \phi_j(\set{C}_j) \right) \sum \limits_{A \notin \{ X, ne(X) \} } \left( \prod_{j: X \notin \set{C}_j} \phi_j(\set{C}_j) \right).
+&= \frac{1}{Z} \sum_X \left( \prod_{j: X \in \set{C}_j} \phi_j(\set{C}_j) \right) \sum \limits_{A \notin \{ X \cup ne(X) \} } \left( \prod_{j: X \notin \set{C}_j} \phi_j(\set{C}_j) \right).
 \end{align*}
 
 E assim
 
 $$
-p \left( X|ne(X) \right) = \frac{p\left( X, ne(X) \right)}{p \left( ne(X) \right)} = \frac{\prod\limits_{j: X \in \mathcal{C}_j} \phi_j(\mathcal{C}_j)} {\sum \limits_{X} \left( \prod\limits_{j: X \in \mathcal{C}_j } \phi_j(\mathcal{C}_j) \right) } .
+p \left( X|ne(X) \right) = \frac{p\left( X \cup ne(X) \right)}{p \left( ne(X) \right)} = \frac{\prod\limits_{j: X \in \mathcal{C}_j} \phi_j(\mathcal{C}_j)} {\sum \limits_{X} \left( \prod\limits_{j: X \in \mathcal{C}_j } \phi_j(\mathcal{C}_j) \right) } .
 $$ 
 
+\end{exerc}
 
+\begin{exerc}
+
+Derive uma expressão similar à do enunciado acima para $ p(X | \set{M}(X)) $, no caso de uma rede bayesiana, onde $\set{M}(X)$ denota o Markov Blanket da variável $X$. 
+
+\emph{Demonstração.} Seguiremos quase os mesmos passos que seguimos no exercício anterior. Primeiro, lembremos que
+
+$$
+p(X | \set{M}(X)) = \frac{p(X, \set{M}(X))}{p(\set{M}(X))}.
+$$
+
+Sabemos, pelo Teorema da Fatoração, que uma rede bayesiana, com conjunto de variáveis dado por $\set{V} = \{ X_1, X_2, \ldots, X_n \} $, tem função de probabilidade conjunta dada por:
+
+$$
+p(\set{V}) = \prod_{i = 1}^n p(X_i|\text{pa}(X_i)). 
+$$
+
+E também, para qualquer subconjunto $ \set{X} $ de $ \set{V} $, temos que:
+
+$$
+p(\set{X}) = \sum_{X \notin \set{X}} \prod_{i = 1}^n p(X_i|\text{pa}(X_i)). 
+$$
+
+
+Agora, vamos analisar numerador e denominador separadamente:
+\begin{align*}
+p(X, \set{M}(X)) =& \sum_{A \notin \{X\} \cup \set{M}(X)} \left( \prod_{i = 1}^n p(X_i|\text{pa}(X_i)) \right) \\
+   =& \sum_{A \notin \{X\} \cup \set{M}(X)} \left(\prod_{i: X_i \in \{X\} \cup \text{ch}(X)} p(X_i|\text{pa}(X_i)) \prod_{i: X_i \notin \{X\} \cup \text{ch}(X)} p(X_i|\text{pa}(X_i)) \right). \\
+\end{align*}
+Mas como $X$, seus filhos, e os pais de seus filhos pertencem a $\{X\} \cup \set{M}(X)$:
+\begin{align*}
+p(X, \set{M}(X)) =& \left( \prod_{i: X_i \in \{X\} \cup \text{ch}(X)} p(X_i|\text{pa}(X_i)) \right) \sum_{A \notin \{X\} \cup \set{M}(X)} \left( \prod_{i: X_i \notin \{X\} \cup \text{ch}(X)} p(X_i|\text{pa}(X_i)) \right).
+\end{align*}
+Para $ p(\set{M}(X)) $ temos:
+\begin{align*}
+p(\set{M}(X)) &= \sum_{A \notin \set{M}(X)} \left( \prod_{i = 1}^n p(X_i|\text{pa}(X_i) \right) \\
+   &= \sum_{A \notin \{X\} \cup \set{M}(X)} \left( \sum_{X} \left(\prod_{i: X_i \in \{X\} \cup \text{ch}(X)} p(X_i|\text{pa}(X_i)) \prod_{i: X_i \notin \{X\} \cup \text{ch}(X)} p(X_i|\text{pa}(X_i)) \right) \right). \\
+\end{align*}
+E como $X$ só aparece no produto $\prod_{i: X_i \in \{X\} \cup \text{ch}(X)} p(X_i|\text{pa}(X_i))$:
+\begin{align*}
+  p(\set{M}(X)) &= \sum_{A \notin \{X\} \cup \set{M}(X)} \left( \left( \sum_{X} \left(\prod_{i: X_i \in \{X\} \cup \text{ch}(X)} p(X_i|\text{pa}(X_i)) \right) \right) \prod_{i: X_i \notin \{X\} \cup \text{ch}(X)} p(X_i|\text{pa}(X_i)) \right). \\
+\end{align*}
+E ainda, como $X$, seus filhos, e os pais de seus filhos pertencem a $\{X\} \cup \set{M}(X)$:
+\begin{align*}
+  p(\set{M}(X)) &= \sum_{X} \left(\prod_{i: X_i \in \{X\} \cup \text{ch}(X)} p(X_i|\text{pa}(X_i)) \right) \sum_{A \notin \{X\} \cup {M}(X)} \left( \prod_{i: X_i \notin \{X\} \cup \text{ch}(X)} p(X_i|\text{pa}(X_i)) \right). \\
+\end{align*}
+Finalmente, para $p(X | \set{M}(X))$, temos:
+\begin{align*}
+p(X | \set{M}(X)) &= \frac{p(X, \set{M}(X))}{p(\set{M}(X))} \\
+ &= \frac{\left( \prod_{i: X_i \in \{X\} \cup \text{ch}(X)} p(X_i|\text{pa}(X_i)) \right) \sum_{A \notin \{X\} \cup \set{M}(X)} \left( \prod_{i: X_i \notin \{X\} \cup \text{ch}(X)} p(X_i|\text{pa}(X_i)) \right)}{\sum_{X} \left(\prod_{i: X_i \in \{X\} \cup \text{ch}(X)} p(X_i|\text{pa}(X_i)) \right) \sum_{A \notin \{X\} \cup \set{M}(X)} \left( \prod_{i: X_i \notin \{X\} \cup \text{ch}(X)} p(X_i|\text{pa}(X_i)) \right)} \\
+ &= \frac{\left( \prod_{i: X_i \in \{X\} \cup \text{ch}(X)} p(X_i|\text{pa}(X_i)) \right)}{\sum_{X} \left(\prod_{i: X_i \in \{X\} \cup \text{ch}(X)} p(X_i|\text{pa}(X_i)) \right)}.
+\end{align*}
 
 \end{exerc}
+
 
 \end{document}
