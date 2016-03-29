@@ -149,7 +149,7 @@ showstringspaces=false            %
 \tableofcontents
 
 \pagebreak
-\section{Exercícios}
+\section{Exercício 1}
 
 \begin{exerc}
 
@@ -174,14 +174,22 @@ $$
 p(\set{X}) = \frac{1}{Z} \sum \limits_{X \notin \set{X} } \left( \prod_{j: \mathcal{C}_j \in \mathcal{C}} \phi_j(\set{C}_j) \right).
 $$
 
-Então, para calcular, $p \left( X|ne(X) \right)$, vamos primeiro calcular $ p\left( X \cup ne(X) \right) $ e $p \left( ne(X) \right)$, para depois simplificar.
+Então, para calcular, $p \left( X|ne(X) \right)$, vamos primeiro calcular $ p\left( X \cup ne(X) \right) $ e $p \left( ne(X) \right)$, para depois simplificar. Para $ p\left( X, ne(X) \right) $, temos:
 
 \begin{align*}
-p\left( X \cup ne(X) \right) &= \frac{1}{Z} \sum \limits_{A \notin \{X \cup ne(X) \} } \left( \prod_{j} \phi_j(\set{C}_j) \right) \\
-&= \frac{1}{Z} \prod_{j: X \in \set{C}_j} \phi_j(\set{C}_j) \sum \limits_{A \notin \{ X \cup ne(X) \} } \left( \prod_{j: X \notin \set{C}_j} \phi_j(\set{C}_j) \right). \\
+p\left( X, ne(X) \right) &= \frac{1}{Z} \sum \limits_{A \notin \{X\} \cup ne(X) } \left( \prod_{j} \phi_j(\set{C}_j) \right) \\
+&= \frac{1}{Z} \sum \limits_{A \notin \{ X \} \cup ne(X) } \left(\prod_{j: X \in \set{C}_j} \phi_j(\set{C}_j)  \prod_{j: X \notin \set{C}_j} \phi_j(\set{C}_j) \right) \\
+\end{align*}
+
+Como no produto $ \prod_{j: X \in \set{C}_j} \phi_j(\set{C}_j) $ só há variáveis em $ \{X\} \cup ne(X) $, então:
+\begin{align*}
+p\left( X, ne(X) \right) &= \frac{1}{Z} \prod_{j: X \in \set{C}_j} \phi_j(\set{C}_j) \sum \limits_{A \notin \{ X \cup ne(X) \} } \left( \prod_{j: X \notin \set{C}_j} \phi_j(\set{C}_j) \right). \\
 \\
+\end{align*}
+Para $p \left( ne(X) \right)$, temos:
+\begin{align*}
 p\left(ne(X) \right) &= \frac{1}{Z} \sum \limits_{A \notin ne(X) } \left( \prod_{j} \phi_j(\set{C}_j) \right) \\
-&= \frac{1}{Z} \sum_X \left( \prod_{j: X \in \set{C}_j} \phi_j(\set{C}_j) \right) \sum \limits_{A \notin \{ X \cup ne(X) \} } \left( \prod_{j: X \notin \set{C}_j} \phi_j(\set{C}_j) \right).
+&= \frac{1}{Z} \sum_X \left( \prod_{j: X \in \set{C}_j} \phi_j(\set{C}_j) \right) \sum \limits_{A \notin \{ X \} \cup ne(X) } \left( \prod_{j: X \notin \set{C}_j} \phi_j(\set{C}_j) \right).
 \end{align*}
 
 E assim
@@ -191,6 +199,8 @@ p \left( X|ne(X) \right) = \frac{p\left( X \cup ne(X) \right)}{p \left( ne(X) \r
 $$ 
 
 \end{exerc}
+
+\section{Exercício 2}
 
 \begin{exerc}
 
