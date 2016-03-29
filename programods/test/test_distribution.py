@@ -43,3 +43,19 @@ class TestDistribution:
         assert_almost_equals(d.evaluate({A.name: 1}), 0.3)
         assert_almost_equals(d.evaluate({A.name: 2}), 0.6)
         assert_almost_equals(d.evaluate({A.name: 3}), 0.1)
+
+    def test_product(self):
+        A = Variable('A', 2)
+        B = Variable('B', 2)
+
+        values1 = {(0,): 0.4, (1,): 0.6}
+        values2 = {(0, 0): 0.7, (0, 1): 0.2, (1, 0): 0.3, (1, 1): 0.8}
+
+        d1 = Distribution([A], [], values1)
+        d2 = Distribution([B], [A], values2)
+
+        p = d1 * d2
+        assert_almost_equals(p.evaluate({'A': 0, 'B': 0}), 0.28)
+        assert_almost_equals(p.evaluate({'A': 0, 'B': 1}), 0.12)
+        assert_almost_equals(p.evaluate({'A': 1, 'B': 0}), 0.12)
+        assert_almost_equals(p.evaluate({'A': 1, 'B': 1}), 0.48)
