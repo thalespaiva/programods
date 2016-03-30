@@ -1,6 +1,7 @@
 
 from programods.distribution import Variable
 
+
 class ProbabilityModel:
 
     def __init__(self, variables, probabilities):
