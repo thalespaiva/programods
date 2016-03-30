@@ -1,10 +1,9 @@
-#!/usr/bin/python3
 
 import itertools as it
 import pyparsing as pp
 
-from distribution import Variable
-from distribution import Distribution
+from programods.distribution import Variable
+from programods.distribution import Distribution
 
 
 class BIF_Parser:
@@ -285,8 +284,15 @@ class BayesNet:
 
 
 if __name__ == "__main__":
-    asia = BayesNet.init_from_bif_file('../examples/bayesnet/asia/asia.bif')
-    rain = BayesNet.init_from_bif_file('../examples/bayesnet/rain/rain.bif')
+    from programods import EXAMPLE_FILES_PATH
+    from os import path
+
+    asia_file = path.join(EXAMPLE_FILES_PATH, 'bayesnet', 'asia', 'asia.bif')
+    rain_file = path.join(EXAMPLE_FILES_PATH, 'bayesnet', 'rain', 'rain.bif')
+
+    asia = BayesNet.init_from_bif_file(asia_file)
+    rain = BayesNet.init_from_bif_file(rain_file)
+
     p, q = asia.local_probs['lung'], asia.local_probs['xray']
     print(p)
     print(q)

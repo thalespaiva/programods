@@ -1,9 +1,8 @@
-#!/usr/bin/python3
 
 import itertools as it
 
-from distribution import Variable
-from distribution import Distribution
+from programods.distribution import Variable
+from programods.distribution import Distribution
 
 
 class UAI_Parser:

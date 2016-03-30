@@ -1,8 +1,5 @@
-#!/usr/bin/python3
 
-
-from distribution import Variable
-
+from programods.distribution import Variable
 
 class ProbabilityModel:
 

@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 
 import itertools as it
 
@@ -23,6 +22,9 @@ class Variable:
 
     def __repr__(self):
         return "Variable<" + self.name + ">"
+
+    def get_valuation(variables, values):
+        return Variable.get_consistent_valuation(variables, values)
 
     def get_consistent_valuation(variables, values):
         valuation = {}
