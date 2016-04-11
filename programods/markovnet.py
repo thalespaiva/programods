@@ -101,6 +101,14 @@ class MarkovNet:
         return it.product(*domains)
 
     def get_partition_function(self, evidence={}):
+        variables = self.variables.values()
+        non_evid_vars = ([v for v in variables if v.name not in evidence])
+        potentials = tuple(self.potentials.values())
+
+        reduced = Potential.eliminate_variables(potentials, non_evid_vars)
+        return reduced.evaluate(evidence)
+
+    def get_partition_function_by_enumeration(self, evidence={}):
         total = 0
 
         var_names = [v.name for v in self.variables.values()]

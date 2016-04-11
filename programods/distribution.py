@@ -133,7 +133,6 @@ class Potential:
         elim_var_names = Variable.get_names(elim_func.scope)
 
         for elim_vals in Variable.domains_product(elim_func.variables):
-            print(elim_var_names, elim_vals)
             consist_val = Variable.get_consistent_valuation(elim_var_names,
                                                             elim_vals)
             if consist_val:
