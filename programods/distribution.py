@@ -61,20 +61,35 @@ class Variable:
         return len(self.domain)
 
 
-class Distribution:
+class Potential:
 
-    def __init__(self, main_vars, cond_vars, values=None):
-        self.main_vars = main_vars
-        self.cond_vars = cond_vars
+    def __init__(self, scope, values=None):
+        self._scope_set = set(scope)  # for fast __in__
+        self.scope = tuple(scope)     # to keep order of values indexes
 
         if values is None:
             self.values = {}
         else:
             self.set_values(values)
 
+    def __in__(self, variable):
+        return variable in self._scope_set
+
+    def __mod__(self, variable):
+        if variable not in self:
+            return
+
     @property
     def variables(self):
         return self.main_vars + self.cond_vars
+
+
+class Distribution(Potential):
+
+    def __init__(self, main_vars, cond_vars, values=None):
+        self.main_vars = main_vars
+        self.cond_vars = cond_vars
+        super().__init__(main_vars + cond_vars, values)
 
     def __getitem__(self, key):
         if not isinstance(key, tuple):
