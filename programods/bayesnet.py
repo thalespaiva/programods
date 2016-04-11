@@ -5,6 +5,7 @@ import pyparsing as pp
 from programods.distribution import Variable
 from programods.distribution import LocalProbability
 
+
 class BIF_Parser:
 
     NET_KEY = "network"
