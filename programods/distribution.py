@@ -166,7 +166,7 @@ class Potential:
         else:
             return potentials.pop() * product(potentials)
 
-    def variable_elimination(potentials, variables):
+    def variables_elimination(potentials, variables):
         for variable in variables:
             dependent = []
             for potential in potentials:
