@@ -86,8 +86,6 @@ class MarkovNet:
         self.variables = variables
         self.potentials = potentials
 
-        self.graph = self.gen_graph()
-
     def init_from_uai_file(uai_file_path):
         variables, potentials = UAI_Parser.parse(uai_file_path)
 
@@ -138,15 +136,20 @@ class MarkovNet:
 
         return graph
 
-    def draw(self, file_path):
+    def get_variables_by_names(self, names):
+        return [self.variables[name] for name in names]
+
+    def draw(self, file_path, variables=None):
         import graphviz as gv
 
+        graph = self.gen_graph(variables)
+
         network = gv.Graph(format='png')
-        for variable in self.graph:
+        for variable in graph:
             network.node(variable.name)
 
-        for variable in self.graph:
-            for neighbour in self.graph[variable]:
+        for variable in graph:
+            for neighbour in graph[variable]:
                 if variable.name < neighbour.name:  # Ugly, but effective
                     network.edge(variable.name, neighbour.name)
 
