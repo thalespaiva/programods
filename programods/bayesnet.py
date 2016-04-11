@@ -3,8 +3,7 @@ import itertools as it
 import pyparsing as pp
 
 from programods.distribution import Variable
-from programods.distribution import Distribution
-
+from programods.distribution import LocalProbability
 
 class BIF_Parser:
 
@@ -84,14 +83,14 @@ class BIF_Parser:
     def _get_prob_from_data_item(item, variables):
         vars_info = item.pop(0)
         main_var = variables[vars_info.pop(0)]
-        cond_vars = [variables[v] for v in vars_info.pop(0)]
+        parent_vars = [variables[v] for v in vars_info.pop(0)]
 
-        probability = Distribution([main_var], cond_vars)
+        probability = LocalProbability(main_var, parent_vars)
 
         probs_info = item.pop(0)
         if probs_info[0] == BIF_Parser.TABVALS_KEY:
             prob_table = probs_info[1]
-            domains_list = [main_var.domain] + [v.domain for v in cond_vars]
+            domains_list = [main_var.domain] + [v.domain for v in parent_vars]
             for valuation, prob in zip(it.product(*domains_list), prob_table):
                 probability[tuple(valuation)] = float(prob)
         else:
@@ -119,14 +118,14 @@ class BayesNet:
             yield node
 
     def parent_nodes(self, node_name):
-        return [prnt.name for prnt in self.local_probs[node_name].cond_vars]
+        return [prnt.name for prnt in self.local_probs[node_name].parent_vars]
 
     def child_nodes(self, node_name):
         target_node = self[node_name]
         children = []
 
         for node in self:
-            if target_node in self.local_probs[node].cond_vars:
+            if target_node in self.local_probs[node].parent_vars:
                 children.append(node)
 
         return children
@@ -216,7 +215,7 @@ class BayesNet:
 
             if item_type == BIF_Parser.PROB_KEY:
                 prob = BIF_Parser._get_prob_from_data_item(item, nodes)
-                local_probs[prob.main_vars[0].name] = prob
+                local_probs[prob.main_var.name] = prob
 
         return BayesNet(network_name, nodes, local_probs, properties)
 
@@ -232,9 +231,9 @@ class BayesNet:
                 network.edge(parent, node)
         network.render(file_path, view=True)
 
-    def get_conditional_distrib(self, main_vars, cond_vars):
-        joint_dist = self.get_joint_distribution(main_vars + cond_vars)
-        cond_dist = self.get_joint_distribution(cond_vars)
+    def get_conditional_distrib(self, main_vars, parent_vars):
+        joint_dist = self.get_joint_distribution(main_vars + parent_vars)
+        cond_dist = self.get_joint_distribution(parent_vars)
 
         return joint_dist/cond_dist
 

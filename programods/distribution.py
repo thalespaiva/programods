@@ -64,7 +64,7 @@ class Variable:
 class Potential:
 
     def __init__(self, scope, values=None):
-        self._scope_set = set(scope)  # for fast __in__
+        self.scope_set = set(scope)  # for fast __in__
         self.scope = tuple(scope)     # to keep order of values indexes
 
         if values is None:
@@ -73,12 +73,13 @@ class Potential:
             self.set_values(values)
 
     def __in__(self, variable):
-        return variable in self._scope_set
+        return variable in self.scope_set
 
     def __str__(self):
         out = []
 
-        out.append("[+] Potential\n")
+        if not isinstance(self, LocalProbability):
+            out.append("[+] Potential\n")
         out.append("[ ] Scope: %s\n" % Variable.get_names_string(self.scope))
 
         for valuation in Variable.domains_product(self.scope):
@@ -102,56 +103,30 @@ class Potential:
             raise TypeError('All keys should be tuples. len(key) == 1?')
         self.values = values
 
-    def __mod__(self, variable):
-        if variable not in self:
-            return
-
-    @property
-    def variables(self):
-        return self.main_vars + self.cond_vars
-
-
-class Distribution(Potential):
-
-    def __init__(self, main_vars, cond_vars, values=None):
-        self.main_vars = main_vars
-        self.cond_vars = cond_vars
-        super().__init__(main_vars + cond_vars, values)
-
     def evaluate(self, var_valuation):
-        valuation = tuple(var_valuation[v.name] for v in self.variables)
+        valuation = tuple(var_valuation[v.name] for v in self.scope)
 
         return self[valuation]
 
-    def __str__(self):
-        out = []
+    def __mul__(self, himself):
+        product = Potential(self.scope_set | himself.scope_set)
 
-        out.append("[+] Distribution(")
-        out.append("%s" % Variable.get_names_string(self.main_vars))
-        out.append(" | ")
-        out.append("%s" % Variable.get_names_string(self.cond_vars))
-        out.append(")\n")
-        out.append("%10s " % Variable.get_names_string(self.cond_vars, 3))
+        var_names = Variable.get_names(product.scope)
+        for values in Variable.domains_product(product.scope):
+            cnstnt_val = Variable.get_consistent_valuation(var_names, values)
+            if cnstnt_val:
+                value = self.evaluate(cnstnt_val)*himself.evaluate(cnstnt_val)
+                product[values] = value
 
-        for main_val in Variable.domains_product(self.main_vars):
-            out.append("| %-8s" % ','.join(map(str, main_val)))
-
-        for cond_val in Variable.domains_product(self.cond_vars):
-            out.append("\n")
-            out.append("%10s " % ','.join(map(str, cond_val)))
-            for main_val in Variable.domains_product(self.main_vars):
-                out.append("| %.4f  " % self[main_val + cond_val])
-
-        return ''.join(out)
+        return product
 
     def __mod__(self, variable):
         var_name = variable.name
 
-        main_elim_vars = [v for v in self.main_vars if v.name != var_name]
-        cond_elim_vars = [v for v in self.cond_vars if v.name != var_name]
-        elim_func = Distribution(main_elim_vars, cond_elim_vars)
+        elim_vars = [v for v in self.scope if v.name != var_name]
+        elim_func = Potential(elim_vars)
 
-        elim_var_names = [var.name for var in elim_func.variables]
+        elim_var_names = Variable.get_names(elim_func.scope)
 
         factor = 1/len(variable.domain)
 
@@ -167,36 +142,41 @@ class Distribution(Potential):
 
         return elim_func
 
-    def __mul__(self, probab):
-        main_vars_set = self.main_vars + probab.main_vars
-        cond_vars_set = self.cond_vars + probab.cond_vars
-        product = Distribution(main_vars_set, cond_vars_set)
-
-        var_names = Variable.get_names(product.variables)
-        for values in Variable.domains_product(product.variables):
-            consist_val = Variable.get_consistent_valuation(var_names, values)
-            if consist_val:
-                value = self.evaluate(consist_val)*probab.evaluate(consist_val)
-                product[values] = value
-
-        return product
-
     def __truediv__(self, probab):
-        main_vars_set = self.main_vars + probab.main_vars
-        cond_vars_set = self.cond_vars + probab.cond_vars
-        division = Distribution(main_vars_set, cond_vars_set)
+        quotient = Potential(self.scope_set | himself.scope_set)
 
-        var_names = [var.name for var in division.variables]
-        for values in Variable.domains_product(division.variables):
-            consist_val = Variable.get_consistent_valuation(var_names, values)
-            if consist_val:
-                val = self.evaluate(consist_val)*probab.evaluate(consist_val)
-                division[values] = val
+        var_names = Variable.get_names(quotient.scope)
+        for values in Variable.domains_product(quotient.scope):
+            cnstnt_val = Variable.get_consistent_valuation(var_names, values)
+            if cnstnt_val:
+                value = self.evaluate(cnstnt_val)/himself.evaluate(cnstnt_val)
+                quotient[values] = value
 
-        return division
+        return quotient
 
     def normalize(self):
         total = sum(self.values.values())
 
         for k, v in self.values.items():
             self.values[k] = v/total
+
+    @property
+    def variables(self):
+        return self.scope
+
+
+class LocalProbability(Potential):
+
+    def __init__(self, main_var, parent_vars):
+        self.main_var = main_var
+        self.parent_vars = parent_vars
+        super().__init__([main_var] + parent_vars)
+
+    def __str__(self):
+        out = []
+
+        out.append("[+] LocalProbability(%s" % self.main_var.name)
+        out.append("|%s)\n" % ','.join(Variable.get_names(self.parent_vars)))
+        out.append(super().__str__())
+
+        return ''.join(out)

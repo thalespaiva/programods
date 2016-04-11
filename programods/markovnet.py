@@ -2,7 +2,7 @@
 import itertools as it
 
 from programods.distribution import Variable
-from programods.distribution import Distribution
+from programods.distribution import Potential
 
 
 class UAI_Parser:
@@ -50,7 +50,7 @@ class UAI_Parser:
             values = map(float, token_extractor())
             domains_prod = it.product(*[variables[n].domain for n in clique])
 
-            potential = Distribution([variables[name] for name in clique], [])
+            potential = Potential([variables[name] for name in clique])
             potential.set_values(dict(zip(domains_prod, values)))
 
             potentials[clique] = potential

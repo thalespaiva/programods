@@ -1,6 +1,6 @@
 
 from ..distribution import Variable
-from ..distribution import Distribution
+from ..distribution import Potential
 
 FLOAT_ERROR = 1e-10
 
@@ -33,13 +33,13 @@ class TestVariable:
         assert Y.cardinality == 3
 
 
-class TestDistribution:
+class TestPotential:
 
     def test_evaluate(self):
         A = Variable('A', 3)
         values = {(1,): 0.3, (2,): 0.6, (3,): 0.1}
 
-        d = Distribution([A], [], values)
+        d = Potential([A], values)
         assert_almost_equals(d.evaluate({A.name: 1}), 0.3)
         assert_almost_equals(d.evaluate({A.name: 2}), 0.6)
         assert_almost_equals(d.evaluate({A.name: 3}), 0.1)
@@ -51,8 +51,8 @@ class TestDistribution:
         values1 = {(0,): 0.4, (1,): 0.6}
         values2 = {(0, 0): 0.7, (0, 1): 0.2, (1, 0): 0.3, (1, 1): 0.8}
 
-        d1 = Distribution([A], [], values1)
-        d2 = Distribution([B], [A], values2)
+        d1 = Potential([A], values1)
+        d2 = Potential([B, A], values2)
 
         p = d1 * d2
         assert_almost_equals(p.evaluate({'A': 0, 'B': 0}), 0.28)
