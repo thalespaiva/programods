@@ -131,8 +131,8 @@ class MarkovNet:
         for potential in self.potentials.values():
             if variables_set.issuperset(potential.scope_set):
                 for var in potential.scope:
-                    neighbours = graph.get(var, set()) | potential.scope_set
-                    graph[var] = neighbours - {var}
+                    neighbors = graph.get(var, set()) | potential.scope_set
+                    graph[var] = neighbors - {var}
 
         return graph
 
@@ -149,15 +149,51 @@ class MarkovNet:
             network.node(variable.name)
 
         for variable in graph:
-            for neighbour in graph[variable]:
-                if variable.name < neighbour.name:  # Ugly, but effective
-                    network.edge(variable.name, neighbour.name)
+            for neighbor in graph[variable]:
+                if variable.name < neighbor.name:  # Ugly, but effective
+                    network.edge(variable.name, neighbor.name)
 
         network.render(file_path, view=True)
 
-    def get_elimination_ordering_by_min_fill(self, variables):
-        pass
+    def get_min_fill_variable(self, graph):
+        min_fill = None
+        min_fill_var = None
 
+        for variable in graph:
+            fill = self.get_n_fill_edges_on_elimination(graph, variable)
+            if min_fill is None or fill < min_fill:
+                min_fill = fill
+                min_fill_var = variable
+
+        return min_fill_var
+
+    def get_n_fill_edges_on_elimination(self, graph, variable):
+        neighbors = graph[variable]
+        n_edges = 0
+        for neighbor in neighbors:
+            n_edges += len(graph[neighbor] & neighbors)
+        return (len(neighbors) * (len(neighbors) - 1) - n_edges) // 2
+
+    def get_elimination_ordering_by_min_fill(self, elim_variables=None):
+        if elim_variables is None:
+            variables = list(self.variables.values())
+        else:
+            variables = list(elim_variables)
+
+        graph = self.gen_graph(variables)
+        ordering = []
+        for _ in range(len(variables)):
+            min_fill_variable = self.get_min_fill_variable(graph)
+
+            for neighbor in graph[min_fill_variable]:
+                adjacent = graph[neighbor] | graph[min_fill_variable]
+                graph[neighbor] = adjacent - {neighbor, min_fill_variable}
+
+            del graph[min_fill_variable]
+            variables.remove(min_fill_variable)
+            ordering.append(min_fill_variable)
+
+        return ordering
 
 if __name__ == "__main__":
     import sys
