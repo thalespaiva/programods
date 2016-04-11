@@ -169,7 +169,8 @@ class MarkovGraph:
             n_edges = 0
             for neighbor in neighbors:
                 n_edges += len(self[neighbor] & neighbors)
-                return (len(neighbors) * (len(neighbors) - 1) - n_edges) // 2
+
+            return (len(neighbors) * (len(neighbors) - 1) - n_edges) // 2
 
         for variable in self:
             fill = get_n_fill_edges_on_elimination(variable)
@@ -192,27 +193,16 @@ class MarkovGraph:
                 return min_degree_var
 
     def get_elimination_ordering_by_min_fill(self, elim_variables=None):
-        if elim_variables is None:
-            variables = list(self.variables.values())
-        else:
-            variables = list(elim_variables)
-
-        graph = self.get_reduced_copy(variables)
-        ordering = []
-        for _ in range(len(variables)):
-            min_fill_variable = graph.get_min_fill_variable()
-
-            for neighbor in graph[min_fill_variable]:
-                adjacent = graph[neighbor] | graph[min_fill_variable]
-                graph[neighbor] = adjacent - {neighbor, min_fill_variable}
-
-            del graph.adjacencies[min_fill_variable]
-            variables.remove(min_fill_variable)
-            ordering.append(min_fill_variable)
-
-        return ordering
+        args = [MarkovGraph.get_min_fill_variable, elim_variables]
+        return self.get_elimination_ordering_by_heuristic(*args)
 
     def get_elimination_ordering_by_min_degree(self, elim_variables=None):
+        args = [MarkovGraph.get_min_degree_variable, elim_variables]
+        return self.get_elimination_ordering_by_heuristic(*args)
+
+    def get_elimination_ordering_by_heuristic(self, heuristic_select,
+                                              elim_variables=None):
+
         if elim_variables is None:
             variables = list(self.variables.values())
         else:
@@ -221,15 +211,15 @@ class MarkovGraph:
         graph = self.get_reduced_copy(variables)
         ordering = []
         for _ in range(len(variables)):
-            min_degree_variable = graph.get_min_degree_variable()
+            selected_variable = heuristic_select(graph)
 
-            for neighbor in graph[min_degree_variable]:
-                adjacent = graph[neighbor] | graph[min_degree_variable]
-                graph[neighbor] = adjacent - {neighbor, min_degree_variable}
+            for neighbor in graph[selected_variable]:
+                adjacent = graph[neighbor] | graph[selected_variable]
+                graph[neighbor] = adjacent - {neighbor, selected_variable}
 
-            del graph[min_degree_variable]
-            variables.remove(min_degree_variable)
-            ordering.append(min_degree_variable)
+            del graph.adjacencies[selected_variable]
+            variables.remove(selected_variable)
+            ordering.append(selected_variable)
 
         return ordering
 
