@@ -164,20 +164,32 @@ class MarkovGraph:
         min_fill = None
         min_fill_var = None
 
+        def get_n_fill_edges_on_elimination(variable):
+            neighbors = self[variable]
+            n_edges = 0
+            for neighbor in neighbors:
+                n_edges += len(self[neighbor] & neighbors)
+                return (len(neighbors) * (len(neighbors) - 1) - n_edges) // 2
+
         for variable in self:
-            fill = self.get_n_fill_edges_on_elimination(variable)
+            fill = get_n_fill_edges_on_elimination(variable)
             if min_fill is None or fill < min_fill:
                 min_fill = fill
                 min_fill_var = variable
 
         return min_fill_var
 
-    def get_n_fill_edges_on_elimination(self, variable):
-        neighbors = self[variable]
-        n_edges = 0
-        for neighbor in neighbors:
-            n_edges += len(self[neighbor] & neighbors)
-        return (len(neighbors) * (len(neighbors) - 1) - n_edges) // 2
+    def get_min_degree_variable(self):
+        min_degree = None
+        min_degree_var = None
+
+        for variable in self:
+            degree = len(self[variable])
+            if min_degree is None or degree < min_degree:
+                min_degree = degree
+                min_degree_var = variable
+
+                return min_degree_var
 
     def get_elimination_ordering_by_min_fill(self, elim_variables=None):
         if elim_variables is None:
@@ -200,28 +212,16 @@ class MarkovGraph:
 
         return ordering
 
-    def get_min_degree_variable(self):
-        min_degree = None
-        min_degree_var = None
-
-        for variable in self:
-            degree = len(self[variable])
-            if min_degree is None or degree < min_degree:
-                min_degree = degree
-                min_degree_var = variable
-
-        return min_degree_var
-
     def get_elimination_ordering_by_min_degree(self, elim_variables=None):
         if elim_variables is None:
             variables = list(self.variables.values())
         else:
             variables = list(elim_variables)
 
-        graph = MarkovGraph.gen_graph(variables)
+        graph = self.get_reduced_copy(variables)
         ordering = []
         for _ in range(len(variables)):
-            min_degree_variable = self.get_min_degree_variable(graph)
+            min_degree_variable = graph.get_min_degree_variable()
 
             for neighbor in graph[min_degree_variable]:
                 adjacent = graph[neighbor] | graph[min_degree_variable]
@@ -278,10 +278,10 @@ class MarkovNet:
         variables = self.variables.values()
         elim_vars = ([v for v in variables if v.name not in evidence])
 
-        ord_elim_vars = self.get_elimination_ordering_by_min_degree(elim_vars)
+        ord_elim = self.graph.get_elimination_ordering_by_min_degree(elim_vars)
         potentials = tuple(self.potentials.values())
 
-        reduced = Potential.eliminate_variables(potentials, ord_elim_vars)
+        reduced = Potential.eliminate_variables(potentials, ord_elim)
         return reduced.evaluate(evidence)
 
     def get_partition_function_by_enumeration(self, evidence={}):
@@ -304,78 +304,6 @@ class MarkovNet:
         graph = MarkovGraph.gen_graph(self, variables)
         graph.draw(file_path)
 
-    def get_min_fill_variable(self, graph):
-        min_fill = None
-        min_fill_var = None
-
-        for variable in graph:
-            fill = self.get_n_fill_edges_on_elimination(graph, variable)
-            if min_fill is None or fill < min_fill:
-                min_fill = fill
-                min_fill_var = variable
-
-        return min_fill_var
-
-    def get_n_fill_edges_on_elimination(self, graph, variable):
-        neighbors = graph[variable]
-        n_edges = 0
-        for neighbor in neighbors:
-            n_edges += len(graph[neighbor] & neighbors)
-        return (len(neighbors) * (len(neighbors) - 1) - n_edges) // 2
-
-    def get_elimination_ordering_by_min_fill(self, elim_variables=None):
-        if elim_variables is None:
-            variables = list(self.variables.values())
-        else:
-            variables = list(elim_variables)
-
-        graph = self.gen_graph(variables)
-        ordering = []
-        for _ in range(len(variables)):
-            min_fill_variable = self.get_min_fill_variable(graph)
-
-            for neighbor in graph[min_fill_variable]:
-                adjacent = graph[neighbor] | graph[min_fill_variable]
-                graph[neighbor] = adjacent - {neighbor, min_fill_variable}
-
-            del graph[min_fill_variable]
-            variables.remove(min_fill_variable)
-            ordering.append(min_fill_variable)
-
-        return ordering
-
-    def get_min_degree_variable(self, graph):
-        min_degree = None
-        min_degree_var = None
-
-        for variable in graph:
-            degree = len(graph[variable])
-            if min_degree is None or degree < min_degree:
-                min_degree = degree
-                min_degree_var = variable
-
-        return min_degree_var
-
-    def get_elimination_ordering_by_min_degree(self, elim_variables=None):
-        if elim_variables is None:
-            variables = list(self.variables.values())
-        else:
-            variables = list(elim_variables)
-
-        graph = self.gen_graph(variables)
-        ordering = []
-        for _ in range(len(variables)):
-            min_degree_variable = self.get_min_degree_variable(graph)
-
-            for neighbor in graph[min_degree_variable]:
-                adjacent = graph[neighbor] | graph[min_degree_variable]
-                graph[neighbor] = adjacent - {neighbor, min_degree_variable}
-
-            del graph[min_degree_variable]
-            variables.remove(min_degree_variable)
-            ordering.append(min_degree_variable)
-
-        return ordering
 
 if __name__ == "__main__":
     import sys
