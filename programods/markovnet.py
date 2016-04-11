@@ -121,6 +121,25 @@ class MarkovNet:
 
         return total
 
+    def gen_graph(self, variables=None):
+        if variables is None:
+            variables_set = set(self.variables.values())
+        else:
+            variables_set = set(variables)
+
+        graph = {}
+        for potential in self.potentials.values():
+            print(variables_set, potential.scope_set)
+            if variables_set.issuperset(potential.scope_set):
+                for var in potential.scope:
+                    neighbours = graph.get(var, set()) | potential.scope_set
+                    graph[var] = neighbours - {var}
+
+        return graph
+
+    def get_elimination_ordering_by_min_fill(self, variables):
+        pass
+
 
 if __name__ == "__main__":
     import sys
