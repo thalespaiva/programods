@@ -128,7 +128,7 @@ class Potential:
 
         elim_var_names = Variable.get_names(elim_func.scope)
 
-        factor = 1/len(variable.domain)
+        # factor = 1/len(variable.domain)
 
         for elim_vals in Variable.domains_product(elim_func.variables):
             consist_val = Variable.get_consistent_valuation(elim_var_names,
@@ -138,7 +138,7 @@ class Potential:
                 for value in variable.domain:
                     consist_val[var_name] = value
                     sum_ += self.evaluate(consist_val)
-                elim_func[elim_vals] = sum_*factor
+                elim_func[elim_vals] = sum_  # *factor
 
         return elim_func
 
@@ -159,6 +159,24 @@ class Potential:
 
         for k, v in self.values.items():
             self.values[k] = v/total
+
+    def combine(potentials):
+        if len(potentials) == 1:
+            return potentials.pop()
+        else:
+            return potentials.pop() * product(potentials)
+
+    def variable_elimination(potentials, variables):
+        for variable in variables:
+            dependent = []
+            for potential in potentials:
+                if variable in potential:
+                    potentials.remove(porential)
+                    dependent.append(dependent)
+            combined = Porentials.combine(dependent_potentials)
+            potentials.append(combined % variable)
+
+        return Potential.product(potentials)
 
     @property
     def variables(self):
