@@ -169,7 +169,9 @@ class Potential:
         else:
             return potentials[0] * Potential.combine(potentials[1:])
 
-    def eliminate_variables(potentials, variables):
+    def eliminate_variables(potentials_tuple, variables):
+        potentials = list(potentials_tuple)
+
         for variable in variables:
             dependents = []
             for pot in potentials:
