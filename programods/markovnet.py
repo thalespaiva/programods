@@ -118,6 +118,16 @@ class MarkovNet:
         reduced = Potential.eliminate_variables(potentials, ord_elim_vars)
         return reduced.evaluate(evidence)
 
+    def get_partition_function_by_min_degree(self, evidence={}):
+        variables = self.variables.values()
+        elim_vars = ([v for v in variables if v.name not in evidence])
+
+        ord_elim_vars = self.get_elimination_ordering_by_min_degree(elim_vars)
+        potentials = tuple(self.potentials.values())
+
+        reduced = Potential.eliminate_variables(potentials, ord_elim_vars)
+        return reduced.evaluate(evidence)
+
     def get_partition_function_by_enumeration(self, evidence={}):
         total = 0
 
@@ -204,6 +214,41 @@ class MarkovNet:
             ordering.append(min_fill_variable)
 
         return ordering
+
+    def get_min_degree_variable(self, graph):
+        min_degree = None
+        min_degree_var = None
+
+        for variable in graph:
+            degree = len(graph[variable])
+            if min_degree is None or degree < min_degree:
+                min_degree = degree
+                min_degree_var = variable
+
+        return min_degree_var
+
+    def get_elimination_ordering_by_min_degree(self, elim_variables=None):
+        if elim_variables is None:
+            variables = list(self.variables.values())
+        else:
+            variables = list(elim_variables)
+
+        graph = self.gen_graph(variables)
+        ordering = []
+        for _ in range(len(variables)):
+            min_degree_variable = self.get_min_degree_variable(graph)
+
+            for neighbor in graph[min_degree_variable]:
+                adjacent = graph[neighbor] | graph[min_degree_variable]
+                graph[neighbor] = adjacent - {neighbor, min_degree_variable}
+
+            del graph[min_degree_variable]
+            variables.remove(min_degree_variable)
+            ordering.append(min_degree_variable)
+
+        return ordering
+
+
 
 if __name__ == "__main__":
     import sys
