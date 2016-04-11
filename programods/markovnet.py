@@ -86,6 +86,8 @@ class MarkovNet:
         self.variables = variables
         self.potentials = potentials
 
+        self.graph = self.gen_graph()
+
     def init_from_uai_file(uai_file_path):
         variables, potentials = UAI_Parser.parse(uai_file_path)
 
@@ -129,13 +131,26 @@ class MarkovNet:
 
         graph = {}
         for potential in self.potentials.values():
-            print(variables_set, potential.scope_set)
             if variables_set.issuperset(potential.scope_set):
                 for var in potential.scope:
                     neighbours = graph.get(var, set()) | potential.scope_set
                     graph[var] = neighbours - {var}
 
         return graph
+
+    def draw(self, file_path):
+        import graphviz as gv
+
+        network = gv.Graph(format='png')
+        for variable in self.graph:
+            network.node(variable.name)
+
+        for variable in self.graph:
+            for neighbour in self.graph[variable]:
+                if variable.name < neighbour.name:  # Ugly, but effective
+                    network.edge(variable.name, neighbour.name)
+
+        network.render(file_path, view=True)
 
     def get_elimination_ordering_by_min_fill(self, variables):
         pass
