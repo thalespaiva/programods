@@ -80,6 +80,68 @@ class UAI_Parser:
         return evidences
 
 
+class MarkovGraph:
+
+    def __init__(self, adjacencies=None):
+        if adjacencies is None:
+            self.adjacencies = {}
+        else:
+            self.adjacencies = adjacencies
+
+    @property
+    def variables(self):
+        return list(self.adjacencies.keys())
+
+    def __getitem__(self, key):
+        return self.adjacencies[key]
+
+    def __setitem__(self, key, value):
+        self.adjacencies[key] = value
+
+    def __iter__(self):
+        for variable in self.adjacencies:
+            yield variable
+
+    def get(self, key, failed_return_value):
+        return self.adjacencies.get(key, failed_return_value)
+
+    def gen_graph(markov_net, variables=None):
+        if variables is None:
+            variables_set = set(markov_net.variables.values())
+        else:
+            variables_set = set(variables)
+
+        graph = MarkovGraph()
+        for potential in markov_net.potentials.values():
+            if variables_set.issuperset(potential.scope_set):
+                for var in potential.scope:
+                    neighbors = graph.get(var, set()) | potential.scope_set
+                    graph[var] = neighbors - {var}
+
+        return graph
+
+    def draw(self, file_path, variables=None):
+        if variables is None:
+            variables = list(self.variables)
+        else:
+            variables = list(variables)
+
+        import graphviz as gv
+
+        network = gv.Graph(format='png')
+        for variable in self:
+            if variable in variables:
+                network.node(variable.name)
+
+        for variable in variables:
+            for neighbor in self[variable]:
+                if neighbor in variables and variable.name < neighbor.name:
+                    # Ugly, but effective
+                    network.edge(variable.name, neighbor.name)
+
+        network.render(file_path, view=True)
+
+
 class MarkovNet:
 
     def __init__(self, variables, potentials):
@@ -247,8 +309,6 @@ class MarkovNet:
             ordering.append(min_degree_variable)
 
         return ordering
-
-
 
 if __name__ == "__main__":
     import sys
