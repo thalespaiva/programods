@@ -192,6 +192,27 @@ class MarkovGraph:
 
                 return min_degree_var
 
+    def get_weighted_min_fill_variable(self):
+        min_fill = None
+        min_fill_var = None
+
+        def get_weighted_fill_edges_on_elimination(variable):
+            neighbors = self[variable]
+            weighted_fill = 0
+            for neighbor in neighbors:
+                for common_friend in self[neighbor] & neighbors:
+                    weighted_fill += (neighbor.cardinality *
+                                      common_friend.cardinality)
+            return weighted_fill // 2
+
+        for variable in self:
+            fill = get_weighted_fill_edges_on_elimination(variable)
+            if min_fill is None or fill < min_fill:
+                min_fill = fill
+                min_fill_var = variable
+
+        return min_fill_var
+
     def get_elimination_ordering_by_min_fill(self, elim_variables=None):
         args = [MarkovGraph.get_min_fill_variable, elim_variables]
         return self.get_elimination_ordering_by_heuristic(*args)
@@ -199,6 +220,11 @@ class MarkovGraph:
     def get_elimination_ordering_by_min_degree(self, elim_variables=None):
         args = [MarkovGraph.get_min_degree_variable, elim_variables]
         return self.get_elimination_ordering_by_heuristic(*args)
+
+    def get_elimination_ordering_by_weighted_min_fill(self,
+                                                      elim_variables=None):
+            args = [MarkovGraph.get_weighted_min_fill_variable, elim_variables]
+            return self.get_elimination_ordering_by_heuristic(*args)
 
     def get_elimination_ordering_by_heuristic(self, heuristic_select,
                                               elim_variables=None):
@@ -269,6 +295,17 @@ class MarkovNet:
         elim_vars = ([v for v in variables if v.name not in evidence])
 
         ord_elim = self.graph.get_elimination_ordering_by_min_degree(elim_vars)
+        potentials = tuple(self.potentials.values())
+
+        reduced = Potential.eliminate_variables(potentials, ord_elim)
+        return reduced.evaluate(evidence)
+
+    def get_partition_function_by_weighted_min_fill(self, evidence={}):
+        variables = self.variables.values()
+        elim_vars = ([v for v in variables if v.name not in evidence])
+
+        ord_elim = self.graph.get_elimination_ordering_by_weighted_min_fill(
+            elim_vars)
         potentials = tuple(self.potentials.values())
 
         reduced = Potential.eliminate_variables(potentials, ord_elim)
