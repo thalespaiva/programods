@@ -203,39 +203,12 @@ class MarkovNet:
 
         return total
 
-    def gen_graph(self, variables=None):
-        if variables is None:
-            variables_set = set(self.variables.values())
-        else:
-            variables_set = set(variables)
-
-        graph = {}
-        for potential in self.potentials.values():
-            if variables_set.issuperset(potential.scope_set):
-                for var in potential.scope:
-                    neighbors = graph.get(var, set()) | potential.scope_set
-                    graph[var] = neighbors - {var}
-
-        return graph
-
     def get_variables_by_names(self, names):
         return [self.variables[name] for name in names]
 
     def draw(self, file_path, variables=None):
-        import graphviz as gv
-
-        graph = self.gen_graph(variables)
-
-        network = gv.Graph(format='png')
-        for variable in graph:
-            network.node(variable.name)
-
-        for variable in graph:
-            for neighbor in graph[variable]:
-                if variable.name < neighbor.name:  # Ugly, but effective
-                    network.edge(variable.name, neighbor.name)
-
-        network.render(file_path, view=True)
+        graph = MarkovGraph.gen_graph(self, variables)
+        graph.draw(file_path)
 
     def get_min_fill_variable(self, graph):
         min_fill = None
