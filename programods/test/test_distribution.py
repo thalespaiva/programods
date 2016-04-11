@@ -59,3 +59,17 @@ class TestPotential:
         assert_almost_equals(p.evaluate({'A': 0, 'B': 1}), 0.12)
         assert_almost_equals(p.evaluate({'A': 1, 'B': 0}), 0.12)
         assert_almost_equals(p.evaluate({'A': 1, 'B': 1}), 0.48)
+
+    def test_variable_elimination(self):
+        A = Variable('A', 2)
+        B = Variable('B', 2)
+
+        values1 = {(0,): 0.1, (1,): 0.9}  # A
+        values2 = {(0, 0): 0.7, (0, 1): 0.2, (1, 0): 0.3, (1, 1): 0.8}  # B A
+
+        d1 = Potential([A], values1)
+        d2 = Potential([B, A], values2)
+        d3 = (d1*d2) % A
+
+        assert_almost_equals(d3.evaluate({'B': 0}), 0.25)
+        assert_almost_equals(d3.evaluate({'B': 1}), 0.75)
