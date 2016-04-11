@@ -75,21 +75,17 @@ class Potential:
     def __in__(self, variable):
         return variable in self._scope_set
 
-    def __mod__(self, variable):
-        if variable not in self:
-            return
+    def __str__(self):
+        out = []
 
-    @property
-    def variables(self):
-        return self.main_vars + self.cond_vars
+        out.append("[+] Potential\n")
+        out.append("[ ] Scope: %s\n" % Variable.get_names_string(self.scope))
 
-
-class Distribution(Potential):
-
-    def __init__(self, main_vars, cond_vars, values=None):
-        self.main_vars = main_vars
-        self.cond_vars = cond_vars
-        super().__init__(main_vars + cond_vars, values)
+        for valuation in Variable.domains_product(self.scope):
+            out.append("[ ] %10s | " % ','.join(map(str, valuation)))
+            out.append("[ ] %-.4f\n" % self[valuation])
+        out.append('[.]')
+        return ''.join(out)
 
     def __getitem__(self, key):
         if not isinstance(key, tuple):
@@ -105,6 +101,22 @@ class Distribution(Potential):
         if not all([isinstance(key, tuple) for key in values]):
             raise TypeError('All keys should be tuples. len(key) == 1?')
         self.values = values
+
+    def __mod__(self, variable):
+        if variable not in self:
+            return
+
+    @property
+    def variables(self):
+        return self.main_vars + self.cond_vars
+
+
+class Distribution(Potential):
+
+    def __init__(self, main_vars, cond_vars, values=None):
+        self.main_vars = main_vars
+        self.cond_vars = cond_vars
+        super().__init__(main_vars + cond_vars, values)
 
     def evaluate(self, var_valuation):
         valuation = tuple(var_valuation[v.name] for v in self.variables)
