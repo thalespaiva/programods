@@ -108,6 +108,16 @@ class MarkovNet:
         reduced = Potential.eliminate_variables(potentials, non_evid_vars)
         return reduced.evaluate(evidence)
 
+    def get_partition_function_by_min_fill(self, evidence={}):
+        variables = self.variables.values()
+        elim_vars = ([v for v in variables if v.name not in evidence])
+
+        ord_elim_vars = self.get_elimination_ordering_by_min_fill(elim_vars)
+        potentials = tuple(self.potentials.values())
+
+        reduced = Potential.eliminate_variables(potentials, ord_elim_vars)
+        return reduced.evaluate(evidence)
+
     def get_partition_function_by_enumeration(self, evidence={}):
         total = 0
 
