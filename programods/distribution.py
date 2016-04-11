@@ -64,7 +64,7 @@ class Variable:
 class Potential:
 
     def __init__(self, scope, values=None):
-        self.scope_set = set(scope)  # for fast __in__
+        self.scope_set = set(scope)  # for fast __contains__
         self.scope = tuple(scope)     # to keep order of values indexes
 
         if values is None:
@@ -72,7 +72,7 @@ class Potential:
         else:
             self.set_values(values)
 
-    def __in__(self, variable):
+    def has_variable(self, variable):
         return variable in self.scope_set
 
     def __str__(self):
@@ -84,7 +84,7 @@ class Potential:
 
         for valuation in Variable.domains_product(self.scope):
             out.append("[ ] %10s | " % ','.join(map(str, valuation)))
-            out.append("[ ] %-.4f\n" % self[valuation])
+            out.append("[ ] %-.4f \n" % self[valuation])
         out.append('[.]')
         return ''.join(out)
 
@@ -121,6 +121,10 @@ class Potential:
         return product
 
     def __mod__(self, variable):
+
+        if self.scope_set == {variable}:
+            return Potential([], {(): sum(self.values.values())})
+
         var_name = variable.name
 
         elim_vars = [v for v in self.scope if v.name != var_name]
@@ -128,9 +132,8 @@ class Potential:
 
         elim_var_names = Variable.get_names(elim_func.scope)
 
-        # factor = 1/len(variable.domain)
-
         for elim_vals in Variable.domains_product(elim_func.variables):
+            print(elim_var_names, elim_vals)
             consist_val = Variable.get_consistent_valuation(elim_var_names,
                                                             elim_vals)
             if consist_val:
@@ -138,7 +141,7 @@ class Potential:
                 for value in variable.domain:
                     consist_val[var_name] = value
                     sum_ += self.evaluate(consist_val)
-                elim_func[elim_vals] = sum_  # *factor
+                elim_func[elim_vals] = sum_
 
         return elim_func
 
@@ -162,21 +165,22 @@ class Potential:
 
     def combine(potentials):
         if len(potentials) == 1:
-            return potentials.pop()
+            return potentials[0]
         else:
-            return potentials.pop() * product(potentials)
+            return potentials[0] * Potential.combine(potentials[1:])
 
     def variables_elimination(potentials, variables):
         for variable in variables:
-            dependent = []
-            for potential in potentials:
-                if variable in potential:
-                    potentials.remove(porential)
-                    dependent.append(dependent)
-            combined = Porentials.combine(dependent_potentials)
+            dependents = []
+            for pot in potentials:
+                if pot.has_variable(variable):
+                    dependents.append(pot)
+            combined = Potential.combine(dependents)
+            for dep in dependents:
+                potentials.remove(dep)
             potentials.append(combined % variable)
 
-        return Potential.product(potentials)
+        return Potential.combine(potentials)
 
     @property
     def variables(self):
