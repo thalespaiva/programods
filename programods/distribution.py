@@ -24,23 +24,7 @@ class Variable:
         return "Variable<" + self.name + ">"
 
     def get_valuation(variables, values):
-        return Variable.get_consistent_valuation(variables, values)
-
-    def get_consistent_valuation(variables, values):
-        valuation = {}
-
-        if isinstance(variables[0], str):
-            var_names = variables
-        else:
-            var_names = [var.name for var in variables]
-
-        for name, value in zip(var_names, values):
-            if name not in valuation:
-                valuation[name] = value
-            elif valuation[name] != value:
-                return None
-
-        return valuation
+        return dict(zip(variables, values))
 
     def get_names(variables, num_chars=None):
         if not num_chars:
@@ -112,12 +96,12 @@ class Potential:
         product = Potential(self.scope_set | himself.scope_set)
 
         var_names = Variable.get_names(product.scope)
-        for values in Variable.domains_product(product.scope):
-            cnstnt_val = Variable.get_consistent_valuation(var_names, values)
-            if cnstnt_val:
-                value = self.evaluate(cnstnt_val)*himself.evaluate(cnstnt_val)
-                product[values] = value
+        print(len(self.values), len(himself.values))
 
+        for values in Variable.domains_product(product.scope):
+            valuation = Variable.get_valuation(var_names, values)
+            value = self.evaluate(valuation)*himself.evaluate(valuation)
+            product[values] = value
         return product
 
     def __mod__(self, variable):
@@ -133,14 +117,12 @@ class Potential:
         elim_var_names = Variable.get_names(elim_func.scope)
 
         for elim_vals in Variable.domains_product(elim_func.variables):
-            consist_val = Variable.get_consistent_valuation(elim_var_names,
-                                                            elim_vals)
-            if consist_val:
-                sum_ = 0
-                for value in variable.domain:
-                    consist_val[var_name] = value
-                    sum_ += self.evaluate(consist_val)
-                elim_func[elim_vals] = sum_
+            valuation = Variable.get_valuation(elim_var_names, elim_vals)
+            sum_ = 0
+            for value in variable.domain:
+                valuation[var_name] = value
+                sum_ += self.evaluate(valuation)
+            elim_func[elim_vals] = sum_
 
         return elim_func
 
@@ -149,10 +131,9 @@ class Potential:
 
         var_names = Variable.get_names(quotient.scope)
         for values in Variable.domains_product(quotient.scope):
-            cnstnt_val = Variable.get_consistent_valuation(var_names, values)
-            if cnstnt_val:
-                value = self.evaluate(cnstnt_val)/himself.evaluate(cnstnt_val)
-                quotient[values] = value
+            valuation = Variable.get_valuation(var_names, values)
+            value = self.evaluate(valuation)/himself.evaluate(valuation)
+            quotient[values] = value
 
         return quotient
 
@@ -165,8 +146,18 @@ class Potential:
     def combine(potentials):
         if len(potentials) == 1:
             return potentials[0]
-        else:
-            return potentials[0] * Potential.combine(potentials[1:])
+
+        product = Potential(set.union(*[p.scope_set for p in potentials]))
+        var_names = Variable.get_names(product.scope)
+
+        for values in Variable.domains_product(product.scope):
+            valuation = Variable.get_valuation(var_names, values)
+            value = 1
+            for p in potentials:
+                value *= p.evaluate(valuation)
+            product[values] = value
+
+        return product
 
     def eliminate_variables(potentials_tuple, variables):
         potentials = list(potentials_tuple)
