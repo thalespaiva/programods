@@ -277,9 +277,13 @@ class BayesNet:
         prob.normalize()
         return prob
 
-    def conjunctive_query(self, valuation):
-        joint_distribution = self.get_joint_distribution(valuation.keys())
+    def conjunctive_query(self, valuation_dict=None, **kwargs):
+        if valuation_dict is not None:
+            valuation = valuation_dict
+        elif kwargs is not None:
+            valuation = kwargs
 
+        joint_distribution = self.get_joint_distribution(valuation.keys())
         return joint_distribution.evaluate(valuation)
 
 
