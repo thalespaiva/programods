@@ -68,7 +68,7 @@ class Potential:
 
         for valuation in Variable.domains_product(self.scope):
             out.append("[ ] %10s | " % ','.join(map(str, valuation)))
-            out.append("[ ] %-.4f \n" % self[valuation])
+            out.append(" %-.4f \n" % self[valuation])
         out.append('[.]')
         return ''.join(out)
 
@@ -209,7 +209,7 @@ class LocalProbability(Potential):
         parent_vars_names = [p.name for p in self.parent_vars]
 
         for p in parent_vars:
-            out.append('| %s' % p.name )
+            out.append('| %s' % p.name)
         for valuation in self.main_var.domain:
             out.append('|%s = %s' % (main_var.name, valuation))
         out.append('|\n')
@@ -224,7 +224,6 @@ class LocalProbability(Potential):
             for valuation in Variable.domains_product([main_var]):
                 out.append('|%0.4f' % self[valuation])
             out.append('|\n')
-
 
         else:
             for values in Variable.domains_product(parent_vars):

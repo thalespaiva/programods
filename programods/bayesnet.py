@@ -293,13 +293,16 @@ if __name__ == "__main__":
     asia = BayesNet.init_from_bif_file(asia_file)
     rain = BayesNet.init_from_bif_file(rain_file)
 
-    p, q = asia.local_probs['lung'], asia.local_probs['xray']
-    print(p)
-    print(q)
-    r = p * q
-    print(r)
-    v = asia['smoke']
-    z = r % v
-    print(z)
-    valuation = {'xray': 'yes', 'dysp': 'no'}
-    print(asia.conjunctive_query(valuation))
+    # p, q = asia.local_probs['lung'], asia.local_probs['xray']
+    # print(p)
+    # print(q)
+    # r = p * q
+    # print(r)
+    # v = asia['smoke']
+    # z = r % v
+    # print(z)
+    # valuation = {'xray': 'yes', 'dysp': 'no'}
+    # print(asia.conjunctive_query(valuation))
+
+    for prob in sorted(asia.local_probs.values(), key=lambda x: len(x.scope)):
+        print(prob.get_markdown_table())
