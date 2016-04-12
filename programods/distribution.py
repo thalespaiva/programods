@@ -194,3 +194,45 @@ class LocalProbability(Potential):
         out.append(super().__str__())
 
         return ''.join(out)
+
+    def get_markdown_table(self):
+        out = []
+
+        out.append("**Local Probability (")
+        out.append("%s" % self.main_var.name)
+        if self.parent_vars:
+            out.append("|%s" % ','.join([p.name for p in self.parent_vars]))
+        out.append(")**\n\n")
+
+        main_var = self.main_var
+        parent_vars = self.parent_vars
+        parent_vars_names = [p.name for p in self.parent_vars]
+
+        for p in parent_vars:
+            out.append('| %s' % p.name )
+        for valuation in self.main_var.domain:
+            out.append('|%s = %s' % (main_var.name, valuation))
+        out.append('|\n')
+
+        for p in parent_vars:
+            out.append('|:-:')
+        for valuation in self.main_var.domain:
+            out.append('|:-:')
+        out.append('|\n')
+
+        if not self.parent_vars:
+            for valuation in Variable.domains_product([main_var]):
+                out.append('|%0.4f' % self[valuation])
+            out.append('|')
+
+        else:
+            for values in Variable.domains_product(parent_vars):
+                valuation = Variable.get_valuation(parent_vars_names, values)
+                for parent in parent_vars:
+                    out.append('|%3s' % valuation[parent.name])
+                for v in main_var.domain:
+                    valuation[main_var.name] = v
+                    out.append("| %-.4f" % self.evaluate(valuation))
+                out.append('|\n')
+
+        return ''.join(out)
