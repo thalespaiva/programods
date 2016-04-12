@@ -223,7 +223,8 @@ class LocalProbability(Potential):
         if not self.parent_vars:
             for valuation in Variable.domains_product([main_var]):
                 out.append('|%0.4f' % self[valuation])
-            out.append('|')
+            out.append('|\n')
+
 
         else:
             for values in Variable.domains_product(parent_vars):
