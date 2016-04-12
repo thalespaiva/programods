@@ -346,7 +346,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 3:
         evidences = UAI_Parser.parse_evidence_file(sys.argv[2])
         for i, evidence in enumerate(evidences):
-            z = markov_net.get_partition_function(evidence)
+            z = markov_net.get_partition_function_by_min_fill(evidence)
             print("partition function log10 for evid %2d: %.6f" %
                   (i + 1, math.log10(z)))
     else:
