@@ -101,7 +101,21 @@ And also, we can pass a set of observed variables:
 False
 ```
 
+To explore d-separation over a network more deeply, it's nice to see some shiny and colorful graphs. This can be accomplished by calling:
+```python
+asia.draw_reachable_via_active_trails('.../reachable.png', ['asia', 'tub'], observed_set=['either'])
+```
 
+which produces the graph below. It's like in the poem
+> Unreachables are red,  
+> Source variables are blue.  
+> Grey variables are sad,  
+> Because of what we saw them do.  
+> A v-strucre makes them mad,  
+> They turn green some that were red,   
+> And some red that were green, too.
+
+![asia_draw_reachable_png](https://github.com/thalespaiva/programods/blob/master/examples/bayesnet/asia/graphics/draw_reachable_example.png)
 
 
 
