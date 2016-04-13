@@ -113,7 +113,7 @@ which produces the graph below. It's like in the poem
 > Because of what we saw them do.  
 > A v-strucre makes them mad,  
 > They turn green some that were red,   
-> And some red that were green, too.
+> And red some that were green, too.
 
 ![asia_draw_reachable_png](https://github.com/thalespaiva/programods/blob/master/examples/bayesnet/asia/graphics/draw_reachable_example.png)
 
