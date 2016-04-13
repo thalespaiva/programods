@@ -167,7 +167,10 @@ class BayesNet:
 
         return reachable
 
-    def is_d_separated(self, this_set, that_set, observed_set):
+    def is_d_separated(self, this_set, that_set, observed_set=None):
+        if observed_set is None:
+            observed_set = []
+
         this_set, that_set = set(this_set), set(that_set)
 
         reachable = self.reachable_via_active_trails(this_set, observed_set)
