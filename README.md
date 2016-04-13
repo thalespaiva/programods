@@ -111,7 +111,7 @@ which produces the graph below. It's like in the poem
 > Source variables are blue.  
 > Grey variables are sad,  
 > Because of what we saw them do.  
-> A v-strucre makes them mad,  
+> A v-structure makes them mad,  
 > They turn green some that were red,   
 > And red some that were green, too.
 
