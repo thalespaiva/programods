@@ -10,7 +10,7 @@ GitHub repository:
  - Code that is easy to read is favored over efficient code
  - It should help students to visualize and understand Probabilistic Models concepts
  - The dificulties of implementations should be clear, and not delegated to another Python library
- - No use of other libraries for probablistic graphical models (corolary of the above, but equally important)
+ - No use of other libraries for probablistic graphical models (a corolary of the above, but individually important)
 
 ### Supported Probabilistic Models ###
 
@@ -82,6 +82,12 @@ Which would give us the code that generated the following table:
 | no| no| 0.1000| 0.9000|
 
 [Here](github.com/thalespaiva/programods/blob/master/examples/bayesnet/asia/graphics/localprobs_table.md) we have the tables of all the asia network local probabilities.
+
+To perform a conjunctive query:
+```python
+>>> asia.conjunctive_query(xray='yes', dysp='no')
+0.0396199356
+```
 
 
 
