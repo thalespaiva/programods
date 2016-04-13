@@ -65,7 +65,7 @@ The local probabilities are indexed by their main varible name. So, to print the
 [.]
 ```
 
-Addicionally, we can generate the markdown table for that local probability:
+Additionally, we can generate the markdown table for that local probability:
 ```python
 asia.local_probs['dysp'].get_markdown_table()
 ```
@@ -81,13 +81,27 @@ Which would give us the code that generated the following table:
 | no|yes| 0.7000| 0.3000|
 | no| no| 0.1000| 0.9000|
 
-[Here](github.com/thalespaiva/programods/blob/master/examples/bayesnet/asia/graphics/localprobs_table.md) we have the tables of all the asia network local probabilities.
+[Here](https://github.com/thalespaiva/programods/blob/master/examples/bayesnet/asia/graphics/localprobs_table.md) we have the tables of all the asia network local probabilities.
 
 To perform a conjunctive query:
 ```python
 >>> asia.conjunctive_query(xray='yes', dysp='no')
 0.0396199356
 ```
+
+We can check if two sets of variables are d-separated:
+```python
+>>> asia.is_d_separated(['asia', 'tub'], ['smoke', 'lung', 'bronc'])
+True
+```
+
+And also, we can pass a set of observed variables:
+```python
+>>> asia.is_d_separated(['asia', 'tub'], ['smoke', 'lung', 'bronc'], observed_set=['either'])
+False
+```
+
+
 
 
 
