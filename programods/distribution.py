@@ -1,6 +1,6 @@
 
 import itertools as it
-
+import random
 
 class Variable:
 
@@ -236,3 +236,17 @@ class LocalProbability(Potential):
                 out.append('|\n')
 
         return ''.join(out)
+
+    def gen_random_sample_given_parents(self, valuation):
+        limit = 1
+        for value in self.main_var.domain:
+            valuation[self.main_var.name] = value
+            prob = self.evaluate(valuation)
+
+            if random.uniform(0, limit) <= prob:
+                return value
+
+            limit -= prob
+
+        # Very low probability but just in case:
+        return value
