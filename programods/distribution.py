@@ -2,6 +2,7 @@
 import itertools as it
 import random
 
+
 class Variable:
 
     def __init__(self, name, domain_or_cardinality):
