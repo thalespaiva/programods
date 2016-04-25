@@ -314,6 +314,27 @@ class BayesNet:
 
         return list(reversed(ordering))
 
+    def conjunctive_query_by_logical_sampling(self, sample_size,
+                                              valuation_dict=None, **kwargs):
+        if valuation_dict is not None:
+            valuation = valuation_dict
+        elif kwargs is not None:
+            valuation = kwargs
+
+        topological_ordering = self.get_topological_ordering()
+
+        consistent_count = 0
+        for _ in range(sample_size):
+            candidate_val = {}
+            for i, var in enumerate(topological_ordering):
+                local_prob = self.local_probs[var]
+                val = local_prob.gen_random_sample_given_parents(candidate_val)
+                candidate_val[var] = val
+
+            if Variable.are_consistent(valuation, candidate_val):
+                consistent_count += 1
+
+        return consistent_count/sample_size
 
 if __name__ == "__main__":
     from programods import EXAMPLE_FILES_PATH
