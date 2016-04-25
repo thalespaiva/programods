@@ -336,6 +336,28 @@ class BayesNet:
 
         return consistent_count/sample_size
 
+    def conjunctive_query_by_likelihood_weighting(self, sample_size, **kwargs):
+        evidence_valuation = kwargs
+
+        topological_ordering = self.get_topological_ordering()
+
+        sum_of_weights = 0
+        for _ in range(sample_size):
+            topo_val = {}
+            weight = 1
+            for i, var in enumerate(topological_ordering):
+                local_prob = self.local_probs[var]
+                if var not in evidence_valuation:
+                    val = local_prob.gen_random_sample_given_parents(topo_val)
+                    topo_val[var] = val
+                else:
+                    topo_val[var] = evidence_valuation[var]
+                    weight *= local_prob.evaluate(topo_val)
+
+            sum_of_weights += weight
+
+        return sum_of_weights/sample_size
+
 if __name__ == "__main__":
     from programods import EXAMPLE_FILES_PATH
     from os import path
