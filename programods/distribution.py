@@ -44,6 +44,15 @@ class Variable:
     def cardinality(self):
         return len(self.domain)
 
+    def are_consistent(this_valuation, that_valuation):
+        for var in this_valuation:
+            this_value = this_valuation[var]
+            that_value = that_valuation.get(var, None)
+            if that_value is not None and this_value != that_value:
+                return False
+
+        return True
+
 
 class Potential:
 
