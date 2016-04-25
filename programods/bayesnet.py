@@ -289,6 +289,31 @@ class BayesNet:
         joint_distribution = self.get_joint_distribution(valuation.keys())
         return joint_distribution.evaluate(valuation)
 
+    def get_topological_ordering(self):
+        ordering = []
+        marked = set()
+        tmp_marked = set()
+
+        def visit(node):
+            if node in tmp_marked:
+                raise ValueError("Not a DAG!")
+            if node not in marked:
+                tmp_marked.add(node)
+                for child in self.child_nodes(node):
+                    visit(child)
+                tmp_marked.remove(node)
+                marked.add(node)
+
+                ordering.append(node)
+
+        nodes = set(self.nodes.keys())
+
+        for node in nodes:
+            if node not in marked:
+                visit(node)
+
+        return list(reversed(ordering))
+
 
 if __name__ == "__main__":
     from programods import EXAMPLE_FILES_PATH
