@@ -183,6 +183,21 @@ class Potential:
 
         return Potential.combine(potentials)
 
+    def get_reduced(self, part_valuation):
+
+        rem_vars = set([v for v in self.variables if v.name in part_valuation])
+        reduced = Potential(self.scope_set - rem_vars)
+        redced_vars = Variable.get_names(reduced.scope)
+
+        for scope_values in Variable.domains_product(reduced.scope):
+            scope_valuation = Variable.get_valuation(redced_vars, scope_values)
+            valuation = dict(part_valuation, **scope_valuation)
+
+            reduced[tuple(scope_values)] = self.evaluate(valuation)
+
+        reduced.normalize()
+        return reduced
+
     @property
     def variables(self):
         return self.scope
