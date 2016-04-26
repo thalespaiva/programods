@@ -106,7 +106,6 @@ class Potential:
         product = Potential(self.scope_set | himself.scope_set)
 
         var_names = Variable.get_names(product.scope)
-        print(len(self.values), len(himself.values))
 
         for values in Variable.domains_product(product.scope):
             valuation = Variable.get_valuation(var_names, values)
