@@ -281,6 +281,26 @@ class BayesNet:
         prob.normalize()
         return prob
 
+    def get_markov_blanket(self, node):
+
+        if isinstance(node, Variable):
+            node = node.name
+
+        parents = set(self.parent_nodes(node))
+        children = set(self.child_nodes(node))
+        espouses = set()
+        for child in children:
+            espouses |= set(self.parent_nodes(child))
+
+        return (parents | children | espouses) - {node}
+
+    def get_probability_given_markov_blanket(self, node, mb_valuation):
+        potentials = [self.local_probs[c] for c in self.child_nodes(node)]
+        potentials.append(self.local_probs[node])
+
+        combined = Potential.combine(potentials)
+        return combined.get_reduced(mb_valuation)
+
     def conjunctive_query(self, valuation_dict=None, **kwargs):
         if valuation_dict is not None:
             valuation = valuation_dict
@@ -288,11 +308,11 @@ class BayesNet:
             valuation = kwargs
 
         variables = self.nodes.values()
-        non_evid_vars = ([v for v in variables if v.name not in evidence])
+        non_evid_vars = ([v for v in variables if v.name not in valuation])
         potentials = tuple(self.local_probs.values())
 
         reduced = Potential.eliminate_variables(potentials, non_evid_vars)
-        return reduced.evaluate(evidence)
+        return reduced.evaluate(valuation)
 
     def conjunctive_query_by_enumeration(self, valuation_dict=None, **kwargs):
         if valuation_dict is not None:
