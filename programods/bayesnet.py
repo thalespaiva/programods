@@ -3,6 +3,7 @@ import itertools as it
 import pyparsing as pp
 
 from programods.distribution import Variable
+from programods.distribution import Potential
 from programods.distribution import LocalProbability
 
 
@@ -286,6 +287,19 @@ class BayesNet:
         elif kwargs is not None:
             valuation = kwargs
 
+        variables = self.nodes.values()
+        non_evid_vars = ([v for v in variables if v.name not in evidence])
+        potentials = tuple(self.local_probs.values())
+
+        reduced = Potential.eliminate_variables(potentials, non_evid_vars)
+        return reduced.evaluate(evidence)
+
+    def conjunctive_query_by_enumeration(self, valuation_dict=None, **kwargs):
+        if valuation_dict is not None:
+            valuation = valuation_dict
+        elif kwargs is not None:
+            valuation = kwargs
+
         joint_distribution = self.get_joint_distribution(valuation.keys())
         return joint_distribution.evaluate(valuation)
 
@@ -358,6 +372,7 @@ class BayesNet:
 
         return sum_of_weights/sample_size
 
+
 if __name__ == "__main__":
     from programods import EXAMPLE_FILES_PATH
     from os import path
@@ -376,8 +391,8 @@ if __name__ == "__main__":
     # v = asia['smoke']
     # z = r % v
     # print(z)
-    # valuation = {'xray': 'yes', 'dysp': 'no'}
-    # print(asia.conjunctive_query(valuation))
+    valuation = {'xray': 'yes', 'dysp': 'no'}
+    print(asia.conjunctive_query(valuation))
 
     for prob in sorted(asia.local_probs.values(), key=lambda x: len(x.scope)):
         print(prob.get_markdown_table())
