@@ -1,0 +1,345 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Short Sectioned Assignment
+% LaTeX Template
+% Version 1.0 (5/5/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Frits Wenneker (http://www.howtotex.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
+\usepackage[brazilian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amsfonts,amsthm,mathtools} % Math packages
+\usepackage{xspace}
+\usepackage{indentfirst}
+\usepackage{placeins}
+\usepackage{hyperref}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\usetikzlibrary{positioning}
+\usetikzlibrary{calc}
+
+%\usepackage{sectsty} % Allows customizing section commands
+%\allsectionsfont{\centering \normalfont\scshape} % Make all sections centered, the default font and small caps
+
+\usepackage{fancyhdr}
+\pagestyle{fancyplain}
+%\fancyhead{}
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[R]{\thepage} % Page numbering for right footer
+\renewcommand{\headrulewidth}{0pt} % Remove header underlines
+\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
+\setlength{\headheight}{13.6pt} % Customize the height of the header
+
+\bibliographystyle{apalike}
+
+%\sectionfont{\bfseries\Large\raggedright}
+%\subsectionfont{\bfseries\Large\raggedright}
+
+\newtheorem{theorem}{Teorema}
+\newtheorem{definition}{Definição}
+\newtheorem{property}{Propriedade}
+\newtheorem{proposition}{Proposição}
+
+\newenvironment{example}[1][Exemplo]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+\newenvironment{exerc}[1][Exercício]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+
+
+\numberwithin{equation}{subsection}
+\numberwithin{figure}{subsection}
+\numberwithin{table}{subsection}
+\numberwithin{definition}{subsection}
+\numberwithin{theorem}{subsection}
+\numberwithin{property}{subsection}
+\numberwithin{proposition}{subsection}
+%\numberwithin{example}{subsection}
+
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+\numberwithin{definition}{section}
+\numberwithin{theorem}{section}
+\numberwithin{property}{section}
+\numberwithin{proposition}{section}
+%\numberwithin{example}{section}
+
+\def\ind{\perp\!\!\!\perp}
+\def\nind{\not\!\perp\!\!\!\perp}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+
+\usepackage{listings}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\lstset{ %
+  backgroundcolor=\color{white},   % choose the background color
+  basicstyle=\ttfamily\small,        % size of fonts used for the code
+  breaklines=true,                 % automatic line breaking only at whitespace
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  keywordstyle=\color{blue},       % keyword style
+  stringstyle=\color{mymauve},     % string literal style
+}
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+
+%\setlength{•}{•}\parindent{0pt} % Removes all indentation from paragraphs - comment this line for an assignment with lots of text
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} % Create horizontal rule command with 1 argument of height
+
+\title{	
+\normalfont \normalsize 
+\textsc{Modelos Probabilísticos Baseados em Grafos} \\ 
+\textsc{Prof. Denis Mauá} \\ [25pt]
+%\horrule{0.5pt} \\[0.4cm] % Thin top horizontal rule
+\huge Algoritmos de Aproximação para o \\ Problema da Inferência 
+%\horrule{1pt} \\[0.5cm] % Thick bottom horizontal rule
+}
+\author{Thales A. B. Paiva \\ thalespaiva@gmail.com} % Your name
+\date{\today} % Today's date or a custom date
+
+\renewcommand{\P}{\mathbb{P}}
+\renewcommand{\bar}[1]{\overline{#1}}
+\newcommand{\set}[1]{\mathcal{#1}}
+
+\begin{document}
+
+
+\maketitle % Print the title
+\horrule{1pt} \\[0.5cm] % Thick bottom horizontal rule
+
+\tableofcontents
+
+\pagebreak
+\section{Implementação dos algoritmos em Python}
+
+Foi pedido que implementássemos os seguintes algoritmos:
+\begin{enumerate}
+  \item Logical Sampling
+  \item Likelihood Weighting
+  \item Gibbs Sampling
+  \item Sum-Product
+\end{enumerate}
+
+Implementei apenas os três primeiros, por enquanto, para redes bayesianas. Assim, no módulo \verb|bayesnets.py|, 
+acrescentei à classe \verb|BayesNet| os seguintes métodos:
+
+\begin{lstlisting}[language=python]
+
+class BayesNet:
+    def get_probability_given_markov_blanket(self, node, mb_valuation)
+    def get_topological_ordering(self)
+    
+    def conjunctive_query(self, valuation_dict=None, **kwargs)
+    def conjunctive_query_by_enumeration(self, valuation_dict=None, **kwargs)
+    def conjunctive_query_by_logical_sampling(self, sample_size
+    def conjunctive_query_by_likelihood_weighting(self, sample_size, **kwargs)
+    def conjunctive_query_by_gibbs_sampling(self, sample_size, **kwargs)
+        def get_prob(index, ordering, old_valuation, new_valuation)
+
+\end{lstlisting}
+
+
+Cada \verb|conjunctive_query*| está associado a um algoritmo, que deve ser evidente pelo nome, exceto o método
+\verb|conjunctive_query|. Este método é implementado usando eliminação de variáveis.
+
+
+\subsection{Logical Sampling}
+
+A implementação do Logical Sampling é simples, direta do pseudo-código.
+\begin{lstlisting}[language=python]
+
+    def conjunctive_query_by_logical_sampling(self, sample_size, valuation_dict=None, **kwargs):
+        if valuation_dict is not None:
+            valuation = valuation_dict
+        elif kwargs is not None:
+            valuation = kwargs
+
+        topological_ordering = self.get_topological_ordering()
+
+        consistent_count = 0
+        for _ in range(sample_size):
+            candidate_val = {}
+            for i, var in enumerate(topological_ordering):
+                local_prob = self.local_probs[var]
+                val = local_prob.gen_random_sample_given_parents(candidate_val)
+                candidate_val[var] = val
+
+            if Variable.are_consistent(valuation, candidate_val):
+                consistent_count += 1
+
+        return consistent_count/sample_size
+
+\end{lstlisting}
+
+\subsection{Likelihood Weighting}
+Esta implementação também é bem direta. Embora talvez numa leitura sem o resto do código, pode ser complicado
+ter ideia de quais as estruturas de dados sendo utilizadas. 
+\begin{lstlisting}[language=python]
+    def conjunctive_query_by_likelihood_weighting(self, sample_size, **kwargs):
+        evidence_valuation = kwargs
+
+        topological_ordering = self.get_topological_ordering()
+
+        sum_of_weights = 0
+        for _ in range(sample_size):
+            topo_val = {}
+            weight = 1
+            for i, var in enumerate(topological_ordering):
+                local_prob = self.local_probs[var]
+                if var not in evidence_valuation:
+                    val = local_prob.gen_random_sample_given_parents(topo_val)
+                    topo_val[var] = val
+                else:
+                    topo_val[var] = evidence_valuation[var]
+                    weight *= local_prob.evaluate(topo_val)
+
+            sum_of_weights += weight
+
+        return sum_of_weights/sample_size
+\end{lstlisting}
+
+\subsection{Gibbs Sampling}
+
+Esta implementação do algoritmo de Gibbs não está boa. Estava demorando muito para rodar, então fiz alguns ajustes 
+que tornaram o código ilegível. Mas acredito que tenha algum bug, pois em alguns testes chega a errar bastante, em
+outros, o erro é surpreendentemente pequeno.
+
+\begin{lstlisting}[language=python]
+
+    def conjunctive_query_by_gibbs_sampling(self, sample_size, **kwargs):
+        evidence_valuation = kwargs
+
+        def get_prob(index, ordering, old_valuation, new_valuation):
+            import random
+
+            valuation = {}
+            for i, var in enumerate(ordering):
+                if i < index:
+                    valuation[var] = new_valuation[var]
+                elif i > index:
+                    valuation[var] = old_valuation[var]
+            target_var = ordering[index]
+            dist = self.get_probability_given_markov_blanket(target_var, valuation)
+            lp = LocalProbability(self[target_var], [])
+            lp.set_values(dist.values)
+
+            return lp.gen_random_sample_given_parents({})
+
+        old_valuation = {v: evidence_valuation[v] for v in evidence_valuation}
+        for v in self.nodes:
+            if v not in evidence_valuation:
+                old_valuation[v] = random.choice(self[v].domain)
+        from pprint import pprint
+
+        ordering = list(self.nodes)
+        consistent_count = 0
+
+        valuations = [old_valuation, {}]
+
+        for k in range(sample_size):
+            old_valuation = valuations[k % 2]
+            new_valuation = valuations[(k + 1) % 2]
+
+            for i, var in enumerate(ordering):
+                new_valuation[var] = get_prob(i, ordering, old_valuation, new_valuation)
+            if Variable.are_consistent(new_valuation, evidence_valuation):
+                consistent_count += 1
+
+        return consistent_count/sample_size
+
+\end{lstlisting}
+
+
+
+\section{Exemplo de uso}
+
+Exemplo simples de uso usando o ipython. Note que ao carregar programods/bayesnet.py, a rede asia é criada.
+\begin{verbatim}
+[thales@passokim:~/msc/modprob/programods][1]$ ipython -i programods/bayesnet.py 
+In [1]: asia.conjunctive_query(smoke='yes', lung='no')
+Out[1]: 0.45
+
+In [2]: asia.conjunctive_query(dysp='yes', lung='no')
+Out[2]: 0.3911706
+
+In [3]: asia.conjunctive_query_by_enumeration(dysp='yes', lung='no')
+Out[3]: 0.39117060000000003
+
+In [5]: asia.conjunctive_query_by_logical_sampling(10000, dysp='yes', lung='no')
+Out[5]: 0.3917
+
+In [6]: asia.conjunctive_query_by_likelihood_weighting(10000, dysp='yes', lung='no')
+Out[6]: 0.38356650000000125
+
+In [7]: asia.conjunctive_query_by_gibbs_sampling(10000, dysp='yes', lung='no')
+Out[7]: 0.1337
+
+In [8]: asia.conjunctive_query_by_gibbs_sampling(1000, dysp='yes', lung='no')
+Out[8]: 0.423
+
+
+\end{verbatim}
+
+
+\section{Comparação} \FloatBarrier
+
+Podemos ver na tabela como o LikelihoodWeighting converge bem mais rápido para o valor, e ainda tem tempo de 
+execução melhor. Decidi não incluir o GibbsSampling aqui, pois seu código está errado. Mas coloquei o tempo
+que consome agora, apenas para comparação.
+
+\begin{table}[]
+\centering
+\label{my-label}
+\begin{tabular}{lllllll}
+\multicolumn{1}{r}{\# Amostra} & \multicolumn{1}{c}{1000} &               & 5000           &               & 10000          &               \\
+\textbf{Algoritmo}  & \textbf{Tempo} & \textbf{Erro} & \textbf{Tempo} & \textbf{Erro} & \textbf{Tempo} & \textbf{Erro} \\
+VarElim             & 827 $\mu$s         & 0             &                &               &                &               \\
+Enumeration         & 7.92 ms        & 0             &                &               &                &               \\
+LogicalSampling     & 44.2 ms        & 0.1955        & 219 ms         & 0.10334       & 441 ms         & 0.0125        \\
+LikelihoodWeighting & 34.6 ms        & 0.0292        & 170 ms         & 0.0401        & 343 ms         & 0.0056        \\
+GibbsSampling       & 1.35 s         & -             & 6s             & -             & -              & -            
+\end{tabular}
+\end{table}
+
+\end{document}
