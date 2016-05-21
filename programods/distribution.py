@@ -149,8 +149,9 @@ class Potential:
     def normalize(self):
         total = sum(self.values.values())
 
-        for k, v in self.values.items():
-            self.values[k] = v/total
+        if total > 0:
+            for k, v in self.values.items():
+                self.values[k] = v/total
 
     def combine(potentials):
         if len(potentials) == 1:

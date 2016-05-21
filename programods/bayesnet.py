@@ -1,4 +1,6 @@
 
+import random
+
 import itertools as it
 import pyparsing as pp
 
@@ -391,6 +393,50 @@ class BayesNet:
             sum_of_weights += weight
 
         return sum_of_weights/sample_size
+
+    def conjunctive_query_by_gibbs_sampling(self, sample_size, **kwargs):
+        evidence_valuation = kwargs
+
+        def get_prob(index, ordering, old_valuation, new_valuation):
+            import random
+
+            valuation = {}
+            for i, var in enumerate(ordering):
+                if i < index:
+                    valuation[var] = new_valuation[var]
+                elif i > index:
+                    valuation[var] = old_valuation[var]
+            target_var = ordering[index]
+            dist = self.get_probability_given_markov_blanket(target_var,
+                                                             valuation)
+            lp = LocalProbability(self[target_var], [])
+            lp.set_values(dist.values)
+
+            return lp.gen_random_sample_given_parents({})
+
+        old_valuation = {v: evidence_valuation[v] for v in evidence_valuation}
+        for v in self.nodes:
+            if v not in evidence_valuation:
+                old_valuation[v] = random.choice(self[v].domain)
+        from pprint import pprint
+
+        ordering = list(self.nodes)
+        consistent_count = 0
+
+        valuations = [old_valuation, {}]
+
+        for k in range(sample_size):
+            old_valuation = valuations[k % 2]
+            new_valuation = valuations[(k + 1) % 2]
+
+            for i, var in enumerate(ordering):
+                new_valuation[var] = get_prob(i, ordering, old_valuation,
+                                              new_valuation)
+            if Variable.are_consistent(new_valuation, evidence_valuation):
+                consistent_count += 1
+
+        return consistent_count/sample_size
+
 
 
 if __name__ == "__main__":
