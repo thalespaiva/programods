@@ -377,7 +377,215 @@ induz um ciclo e nem causa uma imoralidade.
 				;
 	\end{tikzpicture}
   \caption{Rede 1}
+  \label{fig:ex1_1_resp}
+\end{figure}
+
+\subsection{Rede 2}
+
+\begin{figure}[H]
+  \centering
+  	\begin{tikzpicture}[->,>=stealth',auto,node distance=2cm,
+					  thick,main node/.style={circle,draw,font=\sffamily\bfseries}]
+					
+		\node[main node] (B) {$B$};
+		\node[main node] (A) [above right of=B] {$A$};
+		\node[main node] (D) [below right of=B] {$D$};
+		\node[main node] (C) [below right of=A] {$C$};
+					  
+		\path[every node/.style={font=\sffamily\small}]
+				(B) edge[] node {} (A)
+				(C) edge[] node {} (A)
+				(B) edge[] node {} (D)
+				(C) edge[] node {} (D)
+				;
+	\end{tikzpicture}
+  \caption{Rede 1}
+  \label{fig:ex1_1}
+\end{figure}
+
+
+\subsubsection{Esqueleto}
+
+Testes de independência para cada aresta de $K_4$.
+
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|l|l|l|l|}
+        \hline
+        Var 1 & Var 2 & Dado          & D-separadas? \\ \hline
+        $A$   & $B$   & $\{ \} $      & Não          \\ 
+        $A$   & $B$   & $\{ C \}$     & Não          \\ 
+        $A$   & $B$   & $\{ D \}$     & Não          \\ 
+        $A$   & $B$   & $\{ C, D \} $ & Não          \\
+        \hline
+    \end{tabular}
+\end{table}
+
+
+
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|l|l|l|l|}
+        \hline
+        Var 1 & Var 2 & Dado          & D-separadas? \\ \hline
+        $A$   & $C$   & $\{ \} $      & Não          \\ 
+        $A$   & $C$   & $\{ B \}$     & Não          \\ 
+        $A$   & $C$   & $\{ D \}$     & Não          \\ 
+        $A$   & $C$   & $\{ B, D \} $ & Não          \\
+        \hline
+    \end{tabular}
+\end{table}
+
+
+
+
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|l|l|l|l|}
+        \hline
+        Var 1 & Var 2 & Dado          & D-separadas? \\ \hline
+        $A$   & $D$   & $\{ \} $      & Não            \\ 
+        $A$   & $D$   & $\{ B \}$     & Não          \\ 
+        $A$   & $D$   & $\{ C \}$     & Não          \\ 
+        $A$   & $D$   & $\{ B, C \} $ & Sim       \\
+        \hline
+    \end{tabular}
+\end{table}
+
+Então removemos aresta $A-D$.
+
+
+
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|l|l|l|l|}
+        \hline
+        Var 1 & Var 2 & Dado          & D-separadas? \\ \hline
+        $B$   & $C$   & $\{ \} $      & Sim       \\ 
+        $B$   & $C$   & $\{ A \}$     & Não      \\ 
+        $B$   & $C$   & $\{ D \}$     & Não          \\ 
+        $B$   & $C$   & $\{ A, D \} $ & Não     \\
+        \hline
+    \end{tabular}
+\end{table}
+
+Então removemos aresta $B-C$.
+
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|l|l|l|l|}
+        \hline
+        Var 1 & Var 2 & Dado          & D-separadas? \\ \hline
+        $B$   & $D$   & $\{ \} $      & Não       \\ 
+        $B$   & $D$   & $\{ A \}$     & Não      \\ 
+        $B$   & $D$   & $\{ C \}$     & Não          \\ 
+        $B$   & $D$   & $\{ A, C \} $ & Não     \\
+        \hline
+    \end{tabular}
+\end{table}
+
+
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|l|l|l|l|}
+        \hline
+        Var 1 & Var 2 & Dado          & D-separadas? \\ \hline
+        $C$   & $D$   & $\{ \} $      & Não       \\ 
+        $C$   & $D$   & $\{ A \}$     & Não      \\ 
+        $C$   & $D$   & $\{ B \}$     & Não          \\ 
+        $C$   & $D$   & $\{ A, B \} $ & Não     \\
+        \hline
+    \end{tabular}
+\end{table}
+
+Então o esqueleto é dado por $K_4 - \{A, D\} - \{B, C\}$, representado pelo grafo abaixo.
+
+\begin{figure}[H]
+  \centering
+  	\begin{tikzpicture}[->,>=stealth',auto,node distance=2cm,
+					  thick,main node/.style={circle,draw,font=\sffamily\bfseries}]
+					
+		\node[main node] (B) {$B$};
+		\node[main node] (A) [above right of=B] {$A$};
+		\node[main node] (D) [below right of=B] {$D$};
+		\node[main node] (C) [below right of=A] {$C$};
+					  
+		\path[every node/.style={font=\sffamily\small}]
+				(A) edge[-] node {} (B)
+				(A) edge[-] node {} (C)
+				(B) edge[-] node {} (D)
+				(C) edge[-] node {} (D)
+				;
+	\end{tikzpicture}
+  \caption{Rede 1}
+  \label{fig:ex1_1_esqueleto}
+\end{figure}
+
+\subsubsection{Imoralidades}
+
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|l|l|l|l|}
+        \hline
+        $X$   & $Z$        & $Y$    & $Z$ testemunha de $X \perp Y$ \\ \hline
+        $A$   & $B$        & $D$    & Sim          \\ 
+        $A$   & $C$        & $D$    & Sim          \\ 
+        $B$   & $A$        & $C$    & Não          \\ 
+        $B$   & $D$        & $C$    & Não          \\
+        \hline
+    \end{tabular}
+\end{table}
+
+Então fazemos as orientação $B \rightarrow A \leftarrow C$ e $B \rightarrow D \leftarrow C$. 
+E o PDAG com as imoralidades é dado abaixo.
+
+
+\begin{figure}[H]
+  \centering
+  	\begin{tikzpicture}[->,>=stealth',auto,node distance=2cm,
+					  thick,main node/.style={circle,draw,font=\sffamily\bfseries}]
+					
+		\node[main node] (B) {$B$};
+		\node[main node] (A) [above right of=B] {$A$};
+		\node[main node] (D) [below right of=B] {$D$};
+		\node[main node] (C) [below right of=A] {$C$};
+					  
+		\path[every node/.style={font=\sffamily\small}]
+				(B) edge[] node {} (A)
+				(C) edge[] node {} (A)
+				(B) edge[] node {} (D)
+				(C) edge[] node {} (D)
+				;
+	\end{tikzpicture}
+  \caption{Rede 1}
   \label{fig:ex1_1_imor}
+\end{figure}
+
+\subsubsection{Orientações Obrigatórias}
+
+Não temos nenhuma aresta para orientar nesse PDAG.
+
+\subsubsection{PDAG Aprendido}
+
+\begin{figure}[H]
+  \centering
+  	\begin{tikzpicture}[->,>=stealth',auto,node distance=2cm,
+					  thick,main node/.style={circle,draw,font=\sffamily\bfseries}]
+					
+		\node[main node] (B) {$B$};
+		\node[main node] (A) [above right of=B] {$A$};
+		\node[main node] (D) [below right of=B] {$D$};
+		\node[main node] (C) [below right of=A] {$C$};
+					  
+		\path[every node/.style={font=\sffamily\small}]
+				(B) edge[] node {} (A)
+				(C) edge[] node {} (A)
+				(B) edge[] node {} (D)
+				(C) edge[] node {} (D)
+				;
+	\end{tikzpicture}
+  \caption{Rede 1}
+  \label{fig:ex1_1_resp}
 \end{figure}
 
 
