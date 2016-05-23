@@ -744,7 +744,7 @@ Então o esqueleto é dado por $K_4 - \{A, D\} $, representado pelo grafo abaixo
     \end{tabular}
 \end{table}
 
-Então fazemos nenhuma imoralidade é imposta.
+Então nenhuma imoralidade é imposta.
 
 
 \begin{figure}[H]
@@ -798,7 +798,177 @@ Esse PDAG não entra em nenhum dos casos de orientação obrigatória.
   \label{fig:ex1_1_learned}
 \end{figure}
 
+\section{Exercício 2}
+
+\subsection{$(i)$}
+
+\textit{Enunciado}. Mostre um exemplo tal que o algoritmo PC constrói o grafo um PDAG errado por conta de uma única resposta
+errada do oráculo de independência.
+
+Suponha que queremos aprender uma estrutura como a do Exercício 1.1, dada pelo grafo abaixo.
+\begin{figure}[H]
+  \centering
+  	\begin{tikzpicture}[->,>=stealth',auto,node distance=2cm,
+					  thick,main node/.style={circle,draw,font=\sffamily\bfseries}]
+					
+		\node[main node] (B) {$B$};
+		\node[main node] (A) [above right of=B] {$A$};
+		\node[main node] (D) [below right of=B] {$D$};
+		\node[main node] (C) [below right of=A] {$C$};
+					  
+		\path[every node/.style={font=\sffamily\small}]
+				(A) edge[] node {} (B)
+				(A) edge[] node {} (C)
+				(B) edge[] node {} (D)
+				(C) edge[] node {} (D)
+				;
+	\end{tikzpicture}
+  \caption{Rede 1}
+  \label{fig:ex1_1}
+\end{figure}
+
+Se o oráculo dissesse que $A$ e $D$ não são D-separadas pelo conjunto $ \{ B, C \} $, não haveria evidência
+para retirar $A-D$ do esqueleto. Assim, o PDAG aprendido incorretamente, a menos de orientações, seria:
+
+\begin{figure}[H]
+  \centering
+  	\begin{tikzpicture}[->,>=stealth',auto,node distance=2cm,
+					  thick,main node/.style={circle,draw,font=\sffamily\bfseries}]
+					
+		\node[main node] (B) {$B$};
+		\node[main node] (A) [above right of=B] {$A$};
+		\node[main node] (D) [below right of=B] {$D$};
+		\node[main node] (C) [below right of=A] {$C$};
+					  
+		\path[every node/.style={font=\sffamily\small}]
+				(A) edge[-] node {} (B)
+				(A) edge[-] node {} (C)
+				(B) edge[-] node {} (D)
+				(C) edge[-] node {} (D)
+				(A) edge[-] node {} (D)
+				;
+	\end{tikzpicture}
+  \caption{Rede 1}
+  \label{fig:ex1_1}
+\end{figure}
+
+\subsection{$(ii)$}
+
+\textit{Enunciado.} Dê um exemplo em que o algoritmo constrói o esqueleto corretamente mas comete um erro
+na extração de imoralidades.
+
+Suponha que queremos aprender uma estrutura como a do exercício 1.3, dada pelo grafo abaixo.
+
+\begin{figure}[H]
+  \centering
+  	\begin{tikzpicture}[->,>=stealth',auto,node distance=2cm,
+					  thick,main node/.style={circle,draw,font=\sffamily\bfseries}]
+					
+		\node[main node] (B) {$B$};
+		\node[main node] (A) [above right of=B] {$A$};
+		\node[main node] (D) [below right of=B] {$D$};
+		\node[main node] (C) [below right of=A] {$C$};
+					  
+		\path[every node/.style={font=\sffamily\small}]
+         (A) edge[] node {} (B)
+         (A) edge[] node {} (C)
+         (B) edge[] node {} (D)
+         (C) edge[] node {} (D)
+         (B) edge[] node {} (C)				
+				 ;
+	\end{tikzpicture}
+  \caption{Rede 1}
+  \label{fig:ex1_1}
+\end{figure}
+
+Executada corretamente a fase de geração do esqueleto, obtemos o grafo:
+
+\begin{figure}[H]
+  \centering
+  	\begin{tikzpicture}[->,>=stealth',auto,node distance=2cm,
+					  thick,main node/.style={circle,draw,font=\sffamily\bfseries}]
+					
+		\node[main node] (B) {$B$};
+		\node[main node] (A) [above right of=B] {$A$};
+		\node[main node] (D) [below right of=B] {$D$};
+		\node[main node] (C) [below right of=A] {$C$};
+					  
+		\path[every node/.style={font=\sffamily\small}]
+				(A) edge[-] node {} (B)
+				(A) edge[-] node {} (C)
+				(B) edge[-] node {} (D)
+				(C) edge[-] node {} (D)
+				(B) edge[-] node {} (C)
+				;
+	\end{tikzpicture}
+  \caption{Rede 1}
+  \label{fig:ex1_1_esqueleto}
+\end{figure}
+
+Suponha que cometemos um erro na extração das imoralidades.
 
 
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|l|l|l|l|}
+        \hline
+        $X$   & $Z$        & $Y$    & $Z$ testemunha de $X \perp Y$ \\ \hline
+        $A$   & $B$        & $D$    & Sim          \\ 
+        $A$   & $C$        & $D$    & Não \textbf{(ERRADO!)}          \\ 
+        \hline
+    \end{tabular}
+\end{table}
+
+E agora, devemos impor a orientação $A \rightarrow C \leftarrow D$. E o PDAG com essa imoralidade
+fica:
+
+\begin{figure}[H]
+  \centering
+  	\begin{tikzpicture}[->,>=stealth',auto,node distance=2cm,
+					  thick,main node/.style={circle,draw,font=\sffamily\bfseries}]
+					
+		\node[main node] (B) {$B$};
+		\node[main node] (A) [above right of=B] {$A$};
+		\node[main node] (D) [below right of=B] {$D$};
+		\node[main node] (C) [below right of=A] {$C$};
+					  
+		\path[every node/.style={font=\sffamily\small}]
+				(A) edge[-] node {} (B)
+				(A) edge[] node {} (C)
+				(B) edge[-] node {} (D)
+				(D) edge[] node {} (C)
+				(B) edge[-] node {} (C)
+				;
+	\end{tikzpicture}
+  \caption{Rede 1}
+  \label{fig:ex1_1_esqueleto}
+\end{figure}
+
+E ainda, pela regra do quarteto, devemos impor a orientação $ B \rightarrow C$, obtendo
+
+\begin{figure}[H]
+  \centering
+  	\begin{tikzpicture}[->,>=stealth',auto,node distance=2cm,
+					  thick,main node/.style={circle,draw,font=\sffamily\bfseries}]
+					
+		\node[main node] (B) {$B$};
+		\node[main node] (A) [above right of=B] {$A$};
+		\node[main node] (D) [below right of=B] {$D$};
+		\node[main node] (C) [below right of=A] {$C$};
+					  
+		\path[every node/.style={font=\sffamily\small}]
+				(A) edge[-] node {} (B)
+				(A) edge[] node {} (C)
+				(B) edge[-] node {} (D)
+				(D) edge[] node {} (C)
+				(B) edge[] node {} (C)
+				;
+	\end{tikzpicture}
+  \caption{Rede 1}
+  \label{fig:ex1_1_esqueleto}
+\end{figure}
+
+Que não admite orientação das arestas para se tornar o DAG que queríamos aprender.
+Logo, o PDAG foi aprendido incorretamente.
 
 \end{document}
