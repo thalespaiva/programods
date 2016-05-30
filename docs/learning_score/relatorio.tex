@@ -1,0 +1,266 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Short Sectioned Assignment
+% LaTeX Template
+% Version 1.0 (5/5/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Frits Wenneker (http://www.howtotex.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
+\usepackage[brazilian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amsfonts,amsthm,mathtools} % Math packages
+\usepackage{xspace}
+\usepackage{indentfirst}
+\usepackage{placeins}
+\usepackage{hyperref}
+
+\usepackage{graphicx,subcaption}
+\usepackage{float}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\usetikzlibrary{positioning}
+\usetikzlibrary{calc}
+
+%\usepackage{sectsty} % Allows customizing section commands
+%\allsectionsfont{\centering \normalfont\scshape} % Make all sections centered, the default font and small caps
+
+\usepackage{fancyhdr}
+\pagestyle{fancyplain}
+%\fancyhead{}
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[R]{\thepage} % Page numbering for right footer
+\renewcommand{\headrulewidth}{0pt} % Remove header underlines
+\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
+\setlength{\headheight}{13.6pt} % Customize the height of the header
+
+\bibliographystyle{apalike}
+
+%\sectionfont{\bfseries\Large\raggedright}
+%\subsectionfont{\bfseries\Large\raggedright}
+
+\newtheorem{theorem}{Teorema}
+\newtheorem{definition}{Definição}
+\newtheorem{property}{Propriedade}
+\newtheorem{proposition}{Proposição}
+
+\newenvironment{example}[1][Exemplo]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+\newenvironment{exerc}[1][Exercício]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+
+
+\usepackage{titlesec}
+\titleclass{\subsubsubsection}{straight}[\subsection]
+
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+\renewcommand\theparagraph{\thesubsubsubsection.\arabic{paragraph}} % optional; useful if paragraphs are to be numbered
+
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\bfseries}{\thesubsubsubsection}{1em}{}
+\titlespacing*{\subsubsubsection}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+\numberwithin{equation}{subsection}
+\numberwithin{figure}{subsection}
+\numberwithin{table}{subsection}
+\numberwithin{definition}{subsection}
+\numberwithin{theorem}{subsection}
+\numberwithin{property}{subsection}
+\numberwithin{proposition}{subsection}
+%\numberwithin{example}{subsection}
+
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+\numberwithin{definition}{section}
+\numberwithin{theorem}{section}
+\numberwithin{property}{section}
+\numberwithin{proposition}{section}
+%\numberwithin{example}{section}
+
+\def\ind{\perp\!\!\!\perp}
+\def\nind{\not\!\perp\!\!\!\perp}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+
+\usepackage{listings}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\lstset{ %
+  backgroundcolor=\color{white},   % choose the background color
+  basicstyle=\ttfamily\normalsize,        % size of fonts used for the code
+  breaklines=true,                 % automatic line breaking only at whitespace
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  keywordstyle=\color{blue},       % keyword style
+  stringstyle=\color{mymauve},     % string literal style
+}
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+
+%\setlength{•}{•}\parindent{0pt} % Removes all indentation from paragraphs - comment this line for an assignment with lots of text
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} % Create horizontal rule command with 1 argument of height
+
+\title{	
+\normalfont \normalsize 
+\textsc{Demonstrações de Algumas Proposições em Teoria de Informação} \\ 
+\textsc{Prof. Denis Mauá} \\ [25pt]
+%\horrule{0.5pt} \\[0.4cm] % Thin top horizontal rule
+\huge Algumas Demonstrações de \\ Proposições em \\Teoria de Informação \\ [25pt]
+%\horrule{1pt} \\[0.5cm] % Thick bottom horizontal rule
+}
+\author{Thales A. B. Paiva \\ thalespaiva@gmail.com} % Your name
+\date{\today} % Today's date or a custom date
+
+\renewcommand{\P}{\mathbb{P}}
+\renewcommand{\bar}[1]{\overline{#1}}
+\newcommand{\set}[1]{\mathcal{#1}}
+\newcommand{\ent}{\ensuremath{\mathbb{H}}\xspace}
+\newcommand{\entp}{\ensuremath{\mathbb{H}_p}\xspace}
+\newcommand{\varset}{\ensuremath{\mathcal{X}}\xspace}
+\newcommand{\dom}[1]{\ensuremath{\text{dom(#1)}}\xspace}
+\newcommand{\val}{\ensuremath{\text{Val}}\xspace}
+\begin{document}
+
+
+\maketitle % Print the title
+\horrule{1pt} \\[0.5cm] % Thick bottom horizontal rule
+
+\tableofcontents
+
+\pagebreak
+\section{Proposição 1}
+
+Prove que as seguintes afirmações valem para a entropia \entp de um conjunto de variáveis \varset.
+\begin{itemize}
+  \item[]  $(i)$ $0 \leq \entp(\varset) \leq \ln | \val(\varset) |$.
+  \item[]  $(ii)$ $\entp(\varset) = 0 $ se e somente se a distribuição $p$ é degenerada.
+  \item[]  $(iii)$ $\entp(\set{X} \cup \set{Y}) = \entp(\set{X}) + \entp(\set{Y})$ se e somente se
+           $\set{X} \ind_p \set{Y}$.
+\end{itemize}
+
+
+\begin{proof}[Demonstração de $(i)$]
+
+Como a função $\ln$ é côncava, $-\ln$ é convexa, e vale a desigualdade de Jensen. Então
+\begin{align*}
+\entp(\varset) 
+  &= - \sum_{\nu \in \val(\varset)} p(\nu) \ln \left({p(\nu)} \right) \\
+  &= - \sum_{\nu \in \val(\varset)} p(\nu) \left( - \ln \left( \frac{1}{p(\nu)} \right) \right) \\
+  &\leq (-1)(-1) \ln \left(\sum_{\nu \in \val(\varset)} \frac{1}{p(\nu)} p(\nu) \right) \\
+  &= \ln \left(\sum_{\nu \in \val(\varset)} 1 \right) \\
+  &= \ln | \val(\varset) |.
+\end{align*}
+ 
+E claro que $\entp(\varset) \geq 0$ pois, para toda valoração $\nu$, $p(\nu) \geq 0$, e $\ln p(\nu) \leq 0$. 
+
+\end{proof}
+
+
+\begin{proof}[Demonstração de $(ii)$]
+
+Se a distribuição $p$ é degenerada, então, para algum $\nu_1$, $p(\nu_1) = 1$. E também, para todo
+$\nu \neq \nu_1$, $p(\nu) = 0$. Considerando que $0 \ln(0) = 0$, temos
+
+\begin{align*}
+\entp(\varset) 
+  &= - \sum_{\nu \in \val(\varset)} p(\nu) \ln \left({p(\nu)} \right)  \\
+  &= - \nu_1 ln (\nu_1) - \sum_{\nu \neq \nu_1} p(\nu) \ln \left({p(\nu)} \right) \\
+  &= 0.
+\end{align*}
+
+Agora, suponha que $ \entp(\varset) = 0$. Como $p(\nu) \ln (\nu)$  é sempre negativo, para cada $\nu$, 
+devemos ter que $p(\nu) \ln (\nu) = 0$. Então, para cada $\nu$, ou $p(\nu) = 0$, ou $p(\nu) = 1$. Já
+que a soma das probabilidades deve dar 1, apenas uma valoração deve ter probabilidade 1, e as outras,
+probabilidade 0. E assim, por definição, $p$ é degenerada.
+\end{proof}
+
+\begin{proof}[Demonstração de $(iii)$]
+
+Suponha que $\set{X} \ind_p \set{Y}$. Então, para todos $\nu$ de $\val(\set{X})$ e $\mu$ de
+$\val(\set{Y})$,  $p(\nu, \mu) = p(\nu) p(\mu).$ Chame $Z = \val(\set{X}) \times \val(\set{Y})$. Temos que
+
+\begin{align*}
+\entp ( \set{X} \cup \set{Y} )
+  &= - \sum_{(\nu, \mu) \in Z} p(\nu, \mu) \ln \left({p(\nu, \mu)} \right)  \\
+  &= - \sum_{(\nu, \mu) \in Z} p(\nu) p(\mu) \ln \left({p(\nu) p(\mu)} \right)  \\
+  &= - \sum_{(\nu, \mu) \in Z} p(\nu) p(\mu) \ln \left( \left({p(\nu)} \right) + \ln \left({p(\mu)} \right) \right) \\
+  &= - \sum_{(\nu, \mu) \in Z} \left( p(\nu) p(\mu) \ln \left({p(\nu)} \right) + p(\nu) p(\mu)  \ln \left({p(\mu)} \right) \right) \\ 
+  &= - \sum_{(\nu, \mu) \in Z} p(\nu) p(\mu) \ln \left({p(\nu)} \right) - \sum_{(\nu, \mu) \in Z} p(\nu) p(\mu)  \ln \left({p(\mu)} \right) \\
+  &= - 1\sum_{(\nu) \in \val(\set{X})} p(\nu) \ln \left({p(\nu)} \right) - 1\sum_{(\mu) \in \val(Y)} p(\mu)  \ln \left({p(\mu)} \right) \\
+  &= \entp ( \set{X} ) + \entp ( \set{Y} ).
+\end{align*}
+
+
+Agora suponha que $\entp ( \set{X} \cup \set{Y} ) = \entp ( \set{X} ) + \entp ( \set{Y} )$. Temos que:
+\begin{align*}
+\entp ( \set{X} \cup \set{Y} ) 
+  &= - \sum_{(\nu, \mu) \in Z} p(\nu, \mu) \ln \left({p(\nu, \mu)} \right)  \\
+  &= - \sum_{(\nu, \mu) \in Z} p(\nu | \mu) p(\mu) \ln \left({p(\nu|\mu) p(\mu)} \right) \\
+  &= - \sum_{(\nu, \mu) \in Z} p(\nu | \mu) p(\mu) \left( \ln p(\nu|\mu)  + \ln p(\mu) \right) \\
+  &= - \sum_{(\nu, \mu) \in Z} \left( p(\nu | \mu) p(\mu) \ln p(\nu|\mu)  + p(\nu | \mu) p(\mu)  \ln p(\mu) \right) \\
+  &= - \sum_{(\nu, \mu) \in Z} p(\nu | \mu) p(\mu) \ln p(\nu|\mu)  - \sum_{\mu \in \val(\set{Y})} p(\mu) \ln p(\mu) \sum_{\nu \in \val(\set{X})} p(\nu | \mu)   \\
+  &= - \sum_{(\nu, \mu) \in Z} p(\nu | \mu) p(\mu) \ln p(\nu|\mu)  - \sum_{\mu \in \val(\set{Y})} p(\mu) \ln p(\mu) 1 \\
+  &= - \sum_{(\nu, \mu) \in Z} p(\nu | \mu) p(\mu) \ln p(\nu|\mu) +  \entp(\set{Y}). \\
+\end{align*}
+
+Mas como, por hipótese, $\entp ( \set{X} \cup \set{Y} ) = \entp ( \set{X} ) + \entp ( \set{Y} )$, 
+devemos ter que
+\begin{align*}
+\entp ( \set{X} ) = - \sum_{\nu \in \val(\set{X})} p(\nu) \ln p(\nu) = - \sum_{(\nu, \mu) \in Z} p(\nu | \mu) p(\mu) \ln p(\nu|\mu) \\
+\end{align*}
+
+\begin{align*}
+& - \sum_{(\nu, \mu) \in Z} p(\nu, \mu) \ln \left({p(\nu, \mu)} \right)
+  = - \sum_{(\nu) \in \val(\set{X})} p(\nu) \ln \left({p(\nu)} \right) - \sum_{(\mu) \in \val(Y)} p(\mu)  \ln \left({p(\mu)} \right) \\ 
+& \implies \sum_{(\nu, \mu) \in Z} p(\nu, \mu) \ln \left({p(\nu, \mu)} \right)
+  = \sum_{(\nu) \in \val(\set{X})} p(\nu) \ln \left({p(\nu)} \right) + \sum_{(\mu) \in \val(Y)} p(\mu)  \ln \left({p(\mu)} \right) \\
+& \implies \sum_{(\nu, \mu) \in Z} p(\nu, \mu) \ln \left({p(\nu, \mu)} \right)
+  = \sum_{(\nu) \in \val(\set{X})} p(\nu) \ln \left({p(\nu)} \right) + \sum_{(\mu) \in \val(Y)} p(\mu)  \ln \left({p(\mu)} \right) \\
+\end{align*}
+
+
+\end{proof}
+
+\end{document}
