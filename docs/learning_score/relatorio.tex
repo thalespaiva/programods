@@ -162,6 +162,7 @@
 \newcommand{\varset}{\ensuremath{\mathcal{X}}\xspace}
 \newcommand{\dom}[1]{\ensuremath{\text{dom(#1)}}\xspace}
 \newcommand{\val}{\ensuremath{\text{Val}}\xspace}
+\newcommand{\pa}{\ensuremath{\text{pa}}\xspace}
 
 \newcommand{\Y}{\ensuremath{\set{Y}}\xspace}
 \newcommand{\X}{\ensuremath{\set{X}}\xspace}
@@ -351,5 +352,26 @@ Primeiro a desigualdade.
 
 \end{proof}
 
+\section{Proposição 3}
+
+Suponha que um conjunto de dados foi gerado por uma rede bayesiana $(G, p)$. No limite em que o número 
+de dados tende ao infinito, temos que $\widetilde{p} \rightarrow p$, e que
+$$
+LL^\text{MLE}(G) \geq LL^\text{MLE}(G'),
+$$
+para qualquer rede bayesiana $(G', q)$.
+
+\begin{proof}
+
+
+\begin{align*}
+\lim_{\tilde{p} \rightarrow p} LL^\text{MLE}(G) 
+  &= N \sum_{X \in \set{V}} \sum_{X, \pa_G(X)} p(X, \pa_G(X)) \ln \frac{p(X, \pa_G(X))}{p(\pa_G(X))} \\
+  &\geq_{\text{Gibbs}} N \sum_{X \in \set{V}} \sum_{X, \pa_G(X)} p(X, \pa_G(X)) \ln \frac{q(X, \pa_{G'}(X))}{p(\pa_G(X))} \\
+\end{align*}
+
+Mas, se na estrutura 
+
+\end{proof}
 
 \end{document}
