@@ -8,6 +8,8 @@ from collections import defaultdict
 
 from itertools import product
 
+EPS = 0.0001
+
 def get_arff_part(arff_file_name, part):
     arff_file = open(arff_file_name)
     arff_info = arff.load(arff_file)
@@ -106,7 +108,7 @@ class TreeAugmentedNaiveBayesClassifier:
             self.indexed_variables[a[0]] = (i, var)
             self.variables.append(var)
 
-        self.pairs_couters = None
+        self.pairs_counters = None
         self.single_counters = None
 
     def set_counters_by_training(self, training_set, tgt_name):
@@ -127,6 +129,12 @@ class TreeAugmentedNaiveBayesClassifier:
         self.single_counters = single_counters
         self.target_var = tgt_var
         self.tgt_index = tgt_index
+        self.number_of_observations = n
+
+        self.classes_likelihood = {}
+        for k in self.target_var.domain:
+            key = (k, (tgt_index, k))
+            self.classes_likelihood[k] = log(single_counters[key]/n)
 
     def get_edge_weight(self, i, j):
         i, j = min(i, j), max(i, j)
@@ -160,29 +168,90 @@ class TreeAugmentedNaiveBayesClassifier:
         pair_of_var_infos = self.indexed_variables[target_variable_name]
         self.target_index, self.target_variable = pair_of_var_infos
 
-        return self.get_edges_weights()
+        edges_weight = self.get_edges_weights()
+        self.parents = self.get_parents_list_on_min_spanning_tree(edges_weight)
 
     def get_edges_weights(self):
         edges_weight = {}
         for i, _ in enumerate(self.variables):
-            if i == self.tgt_index:
-                continue
-
             for j, _ in enumerate(self.variables[:i]):
                 edges_weight[j, i] = self.get_edge_weight(i, j)
 
         return edges_weight
 
+    def get_parents_list_on_min_spanning_tree(self, edges_weight):
+        vertices = set(range(len(self.variables)))
+        vertices.remove(self.target_index)
+        n = len(vertices)
 
-# $N = NaiveBayesClassifier('examples/classifiers/emotions-train.arff')
-# N.train('./examples/classifiers/emotions-train.arff', N.variables[0])
+        parents = [None] * (n + 1)
+        costs = {(0, next(iter(vertices)))}
 
-# M = NaiveBayesClassifier('examples/classifiers/medical-train.arff')
-# M.train('./examples/classifiers/medical-train.arff', M.variables[0])
+        def get_cost(i, j):
+            return edges_weight[min(i, j), max(i, j)]
+
+        while costs:  # Prim's Algorithm
+            c, v = min(costs, key=lambda q: q[1])
+            costs.remove((c, v))
+            vertices.remove(v)
+
+            for u in vertices:
+                if parents[u] is None:
+                    costs.add((get_cost(v, u), u))
+                    parents[u] = v
+
+                elif get_cost(parents[u], u) > get_cost(v, u):
+                    costs.remove((get_cost(parents[u], u), u))
+                    costs.add((get_cost(v, u), u))
+                    parents[u] = v
+
+        return parents
+
+    def classify(self, attributes_values):
+        classes_ll = {k: i for k, i in self.classes_likelihood.items()}
+
+        for i, val in enumerate(attributes_values):
+            if i == self.target_index:
+                continue
+
+            for c in classes_ll:
+                if self.parents[i] is None:
+                    estim = self.single_counters[c, (i, attributes_values[i])]
+                    estim /= self.single_counters[c, (self.tgt_index, c)]
+                else:
+                    p = self.parents[i]
+                    pair_key = (c, (min(i, p), attributes_values[min(i, p)]),
+                                   (max(i, p), attributes_values[max(i, p)]))
+                    print('pk', pair_key)
+                    estim = self.pairs_counters[pair_key]
+
+                    single_key = (c, (p, attributes_values[p]))
+                    print('sk', single_key)
+                    estim /= self.single_counters[single_key] + EPS
+                print(estim)
+                classes_ll[c] += log(estim + EPS)
+
+        return max(classes_ll, key=lambda k: classes_ll[k])
+
+    def test(self, arff_file_name):
+        test_set = get_arff_part(arff_file_name, 'data')
+        no_corrects = 0
+        for test_unit in test_set:
+            expected_class = self.classify(test_unit)
+            if expected_class == test_unit[self.target_index]:
+                no_corrects += 1
+
+        print("P = ", no_corrects/len(test_set))
+
+
+P = NaiveBayesClassifier('examples/classifiers/emotions-train.arff')
+P.train('./examples/classifiers/emotions-train.arff', P.variables[0])
+
+Q = NaiveBayesClassifier('examples/classifiers/medical-train.arff')
+Q = Q.train('./examples/classifiers/medical-train.arff', Q.variables[0])
 
 N = TreeAugmentedNaiveBayesClassifier('./examples/classifiers/small-train.arff')
-tset = arff.load(open('./examples/classifiers/small-train.arff'))['data']
-N.set_counters_by_training(tset, N.variables[0].name)
+N.train('./examples/classifiers/small-train.arff', N.variables[0].name)
 
-M = TreeAugmentedNaiveBayesClassifier('examples/classifiers/emotions-train.arff')
-mew = M.train('./examples/classifiers/emotions-train.arff', M.variables[1].name)
+M = TreeAugmentedNaiveBayesClassifier('examples/classifiers/medical-train.arff')
+M.train('./examples/classifiers/medical-train.arff', M.variables[0].name)
