@@ -4,7 +4,9 @@ import arff
 from math import log
 
 from programods.distribution import Variable
+from collections import defaultdict
 
+from itertools import product
 
 def get_arff_part(arff_file_name, part):
     arff_file = open(arff_file_name)
@@ -15,10 +17,10 @@ def get_arff_part(arff_file_name, part):
 
 
 def increment_or_init(dict_, key):
-    if key not in dict_:
-        dict_[key] = 1
-    else:
+    try:
         dict_[key] += 1
+    except:
+        dict_[key] = 1
 
 
 class NaiveBayesClassifier:
@@ -107,24 +109,24 @@ class TreeAugmentedNaiveBayesClassifier:
         self.pairs_couters = None
         self.single_counters = None
 
-    def set_training_set_counters(self, training_set, tgt_name):
+    def set_counters_by_training(self, training_set, tgt_name):
         tgt_index, tgt_var = self.indexed_variables[tgt_name]
 
-        pairs_counters = {}
-        single_counters = {}
+        pairs_counters = defaultdict(int)
+        single_counters = defaultdict(int)
 
-        for obs in training_set:
-            for i, ivalue in enumerate(obs):
-                for j, jvalue in enumerate(obs[:i]):
-                    key = (obs[tgt_index], (j, jvalue), (i, ivalue))
-                    increment_or_init(pairs_counters, key)
+        n = len(training_set[0])
+        for i in range(n):
+            for obs in training_set:
+                for j in range(i):
+                    pairs_counters[(obs[tgt_index],
+                                   (j, obs[j]), (i, obs[i]))] += 1
+                single_counters[obs[tgt_index], (i, obs[i])] += 1
 
-                tgt_key = (obs[tgt_index], (i, ivalue))
-                increment_or_init(single_counters, tgt_key)
-
-        self.single_counters = single_counters
         self.pairs_counters = pairs_counters
+        self.single_counters = single_counters
         self.target_var = tgt_var
+        self.tgt_index = tgt_index
 
     def get_edge_weight(self, i, j):
         i, j = min(i, j), max(i, j)
@@ -151,12 +153,36 @@ class TreeAugmentedNaiveBayesClassifier:
 
         return weight
 
+    def train(self, arff_file_name, target_variable_name):
+        training_set = get_arff_part(arff_file_name, 'data')
 
-#$N = NaiveBayesClassifier('examples/classifiers/emotions-train.arff')
-#N.train('./examples/classifiers/emotions-train.arff', N.variables[0])
+        self.set_counters_by_training(training_set, target_variable_name)
+        pair_of_var_infos = self.indexed_variables[target_variable_name]
+        self.target_index, self.target_variable = pair_of_var_infos
 
-#M = NaiveBayesClassifier('examples/classifiers/medical-train.arff')
-#M.train('./examples/classifiers/medical-train.arff', M.variables[0])
+        return self.get_edges_weights()
+
+    def get_edges_weights(self):
+        edges_weight = {}
+        for i, _ in enumerate(self.variables):
+            if i == self.tgt_index:
+                continue
+
+            for j, _ in enumerate(self.variables[:i]):
+                edges_weight[j, i] = self.get_edge_weight(i, j)
+
+        return edges_weight
+
+
+# $N = NaiveBayesClassifier('examples/classifiers/emotions-train.arff')
+# N.train('./examples/classifiers/emotions-train.arff', N.variables[0])
+
+# M = NaiveBayesClassifier('examples/classifiers/medical-train.arff')
+# M.train('./examples/classifiers/medical-train.arff', M.variables[0])
 
 N = TreeAugmentedNaiveBayesClassifier('./examples/classifiers/small-train.arff')
 tset = arff.load(open('./examples/classifiers/small-train.arff'))['data']
+N.set_counters_by_training(tset, N.variables[0].name)
+
+M = TreeAugmentedNaiveBayesClassifier('examples/classifiers/emotions-train.arff')
+mew = M.train('./examples/classifiers/emotions-train.arff', M.variables[1].name)
