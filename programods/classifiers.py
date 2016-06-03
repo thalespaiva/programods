@@ -18,7 +18,12 @@ class NaiveBayesClassifier:
         for i, a in enumerate(arff_attributes):
             self.indexed_variables[a[0]] = (i, Variable(a[0], a[1]))
 
-    def train(self, arff_file_name, target_variable_name):
+        self.target_variable = None
+        self.target_index = None
+        self.likelihoods = None
+        self.target_likelihood = None
+
+    def train(self, arff_file_name, target_variable_name, None):
         arff_file = open(arff_file_name)
         training_set = arff.load(arff_file)['data']
         arff_file.close()
@@ -44,21 +49,37 @@ class NaiveBayesClassifier:
         self.target_index = tgt_index
         self.likelihoods = likelihoods
 
-        n = len(self.variables) - 1
+        n = 1 - (len(self.variables) - 1 - 1)
         self.target_likelihood = {k: n*log(v) for k, v in tgt_count.items()}
 
     def classify(self, attributes_values):
-        classes_likelihood = {k: v for k, v in self.target_likelihood.items()}
+        classes_ll = {k: v for k, v in self.target_likelihood.items()}
 
         for i, val in enumerate(attributes_values):
             if i == self.target_index:
                 continue
-            ob_class = attributes_values[self.target_index]
-            classes_likelihood[ob_class] += self.likelihoods[ob_class, i, val]
 
-        return classes_likelihood
+            for k in classes_ll:
+                classes_ll[k] += self.likelihoods.get((k, i, val), 0)
+
+        return max(classes_ll, key=lambda k: classes_ll[k])
+
+    def test(self, arff_file_name):
+        arff_file = open(arff_file_name)
+        test_set = arff.load(arff_file)['data']
+        arff_file.close()
+
+        no_corrects = 0
+        for test_unit in test_set:
+            expected_class = self.classify(test_unit)
+            if expected_class == test_unit[self.target_index]:
+                no_corrects += 1
+
+        print("P = ", no_corrects/len(test_set))
 
 
 N = NaiveBayesClassifier('examples/classifiers/emotions-train.arff')
-t = N.train('./examples/classifiers/emotions-train.arff', N.variables[0])
-test_data = arff.load(open('examples/classifiers/emotions-test.arff'))['data']
+N.train('./examples/classifiers/emotions-train.arff', N.variables[0])
+
+M = NaiveBayesClassifier('examples/classifiers/medical-train.arff')
+M.train('./examples/classifiers/medical-train.arff', M.variables[0])
