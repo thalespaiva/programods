@@ -272,6 +272,7 @@ class AverageOneDependenceClassifier(Classifier):
                 for j in range(i):
                     self.counter.inc(tgt_obs, (j, obs[j]), (i, obs[i]))
                 self.counter.inc(tgt_obs, (i, obs[i]))
+            print(i)
 
         for c in tgt_var.domain:
             self.counter.set(self.counter.get(c, (tgt_index, c)), c)
@@ -282,56 +283,60 @@ class AverageOneDependenceClassifier(Classifier):
 
         self.classes_likelihood = {}
         for k in self.target_var.domain:
-            self.classes_likelihood[k] = log(self.counter.get(k) /
-                                             len(training_set))
+            self.classes_likelihood[k] = self.counter.get(k)/len(training_set)
+
+    def train(self, arff_file_name, target_variable_name):
+        training_set = get_arff_part(arff_file_name, 'data')
+
+        self.set_counters_by_training(training_set, target_variable_name)
+        pair_of_var_infos = self.indexed_variables[target_variable_name]
+        self.target_index, self.target_variable = pair_of_var_infos
 
     def classify(self, attr_values):
         classes_ll = {k: 0 for k in self.target_var.domain}
 
-        for c in classes_ll:
+        classes_s = {k: set() for k in self.target_var.domain}
+
+        for c in classes_s:
             for i, i_val in enumerate(attr_values):
+                if self.counter.get(c, (i, i_val)) >= 20:
+                    classes_s[c].add(i)
+
+        for c in classes_ll:
+            for i in classes_s[c]:
+                i_val = attr_values[i]
                 if i == self.target_index:
                     continue
+                mult = self.counter.get(c, (i, i_val)) + EPS
 
+                prod = 1
                 for j, j_val in enumerate(attr_values):
-
-                    if j == self.target_var or j == i:
+                    if j == self.target_index or j == i:
                         continue
 
+                    prod *= self.counter.get(c, (i, i_val), (j, j_val))/mult
 
-                self.counter.get()
-
-                if self.parents[i] is None:
-                    estim = self.counter.get(c, (i, attr_values[i]))
-                    estim /= self.counter.get(c)
-                else:
-                    p = self.parents[i]
-                    pair_key = (c, (min(i, p), attr_values[min(i, p)]),
-                                   (max(i, p), attr_values[max(i, p)]))
-                    estim = self.counter.get(*pair_key)
-
-                    estim /= self.counter.get(c, (p, attr_values[p])) + EPS
-
-                classes_ll[c] += log(estim + EPS)
+                classes_ll[c] += mult*prod
+            classes_ll[c] /= len(classes_s[c])
 
         return max(classes_ll, key=lambda k: classes_ll[k])
 
 
 
-#P = NaiveBayesClassifier('examples/classifiers/emotions-train.arff')
-#P.train('./examples/classifiers/emotions-train.arff', P.variables[0].name)
+P = NaiveBayesClassifier('examples/classifiers/emotions-train.arff')
+P.train('./examples/classifiers/emotions-train.arff', P.variables[0].name)
 #
 # Q = NaiveBayesClassifier('examples/classifiers/medical-train.arff')
 # Q.train('./examples/classifiers/medical-train.arff', Q.variables[0])
 #
-R = NaiveBayesClassifier('examples/classifiers/yeast-train.arff')
+R = TreeAugmentedNaiveBayesClassifier('examples/classifiers/yeast-train.arff')
 R.train('./examples/classifiers/yeast-train.arff', R.variables[0].name)
 #
 # S = NaiveBayesClassifier('examples/classifiers/yelp-train.arff')
 # S.train('./examples/classifiers/yelp-train.arff', S.variables[0])
 
-T = TreeAugmentedNaiveBayesClassifier('examples/classifiers/yeast-train.arff')
-T.train('./examples/classifiers/yeast-train.arff', T.variables[0].name)
+T = TreeAugmentedNaiveBayesClassifier('examples/classifiers/emotions-train.arff')
+T.train('./examples/classifiers/emotions-train.arff', T.variables[0].name)
 
 #U = TreeAugmentedNaiveBayesClassifier('examples/classifiers/yelp-train.arff')
 #U.train('./examples/classifiers/yelp-train.arff', U.variables[0].name)
@@ -341,3 +346,12 @@ T.train('./examples/classifiers/yeast-train.arff', T.variables[0].name)
 
 # M = TreeAugmentedNaiveBayesClassifier('examples/classifiers/medical-train.arff')
 # M.train('./examples/classifiers/medical-train.arff', M.variables[0].name)
+
+U = AverageOneDependenceClassifier('examples/classifiers/small-train.arff')
+U.train('./examples/classifiers/small-train.arff', U.variables[0].name)
+
+X = AverageOneDependenceClassifier('examples/classifiers/emotions-train.arff')
+X.train('./examples/classifiers/emotions-train.arff', X.variables[0].name)
+
+Y = AverageOneDependenceClassifier('examples/classifiers/yeast-train.arff')
+Y.train('./examples/classifiers/yeast-train.arff', Y.variables[0].name)
