@@ -26,6 +26,22 @@ def increment_or_init(dict_, key):
         dict_[key] = 1
 
 
+class Counter:
+
+    def __init__(self):
+        self.counter = defaultdict(int)
+
+    def set(self, value, class_var, att_var_1=(None, None),
+            att_var_2=(None, None)):
+        self.counter[class_var, att_var_1, att_var_2] = value
+
+    def inc(self, class_var, att_var_1=(None, None), att_var_2=(None, None)):
+        self.counter[class_var, att_var_1, att_var_2] += 1
+
+    def get(self, class_var, att_var_1=(None, None), att_var_2=(None, None)):
+        return self.counter[class_var, att_var_1, att_var_2]
+
+
 class Classifier:
 
     def __init__(self, arff_file_name):
@@ -37,6 +53,9 @@ class Classifier:
             var = Variable(a[0], a[1])
             self.indexed_variables[a[0]] = (i, var)
             self.variables.append(var)
+
+        self.target_variable = None
+        self.target_index = None
 
     def train(self, arff_file_name, target_variable_name):
         raise NotImplementedError("Subclasses should implement this!")
@@ -60,8 +79,6 @@ class NaiveBayesClassifier(Classifier):
     def __init__(self, arff_file_name):
         super().__init__(arff_file_name)
 
-        self.target_variable = None
-        self.target_index = None
         self.likelihoods = None
         self.target_likelihoods = None
 
@@ -116,33 +133,32 @@ class TreeAugmentedNaiveBayesClassifier(Classifier):
     def __init__(self, arff_file_name):
         super().__init__(arff_file_name)
 
-        self.pairs_counters = None
-        self.single_counters = None
+        self.counter = None
 
     def set_counters_by_training(self, training_set, tgt_name):
         tgt_index, tgt_var = self.indexed_variables[tgt_name]
 
-        pairs_counters = defaultdict(int)
-        single_counters = defaultdict(int)
+        self.counter = Counter()
 
         n = len(training_set[0])
         for i in range(n):
             for obs in training_set:
+                tgt_obs = obs[tgt_index]
                 for j in range(i):
-                    pairs_counters[(obs[tgt_index],
-                                   (j, obs[j]), (i, obs[i]))] += 1
-                single_counters[obs[tgt_index], (i, obs[i])] += 1
+                    self.counter.inc(tgt_obs, (j, obs[j]), (i, obs[i]))
+                self.counter.inc(tgt_obs, (i, obs[i]))
 
-        self.pairs_counters = pairs_counters
-        self.single_counters = single_counters
+        for c in tgt_var.domain:
+            self.counter.set(self.counter.get(c, (tgt_index, c)), c)
+
         self.target_var = tgt_var
         self.tgt_index = tgt_index
-        self.number_of_observations = n
+        self.number_of_observations = len(training_set)
 
         self.classes_likelihood = {}
         for k in self.target_var.domain:
-            key = (k, (tgt_index, k))
-            self.classes_likelihood[k] = log(single_counters[key]/n)
+            self.classes_likelihood[k] = log(self.counter.get(k) /
+                                             len(training_set))
 
     def get_edge_weight(self, i, j):
         i, j = min(i, j), max(i, j)
@@ -153,16 +169,12 @@ class TreeAugmentedNaiveBayesClassifier(Classifier):
         for c in self.target_var.domain:
             for i_val in i_var.domain:
                 for j_val in j_var.domain:
-                    pairs_key = (c, (i, i_val), (j, j_val))
-                    pair_occurrs = self.pairs_counters.get(pairs_key, 0)
-
+                    pair_occurrs = self.counter.get(c, (i, i_val), (j, j_val))
                     if pair_occurrs == 0:
                         continue
 
-                    single_occurrs_i = self.single_counters.get(
-                        (c, (i, i_val)), 0)
-                    single_occurrs_j = self.single_counters.get(
-                        (c, (j, j_val)), 0)
+                    single_occurrs_i = self.counter.get(c, (i, i_val))
+                    single_occurrs_j = self.counter.get(c, (j, j_val))
 
                     weight -= pair_occurrs * log(
                         pair_occurrs/(single_occurrs_i * single_occurrs_j))
@@ -215,51 +227,59 @@ class TreeAugmentedNaiveBayesClassifier(Classifier):
 
         return parents
 
-    def classify(self, attributes_values):
+    def classify(self, attr_values):
         classes_ll = {k: i for k, i in self.classes_likelihood.items()}
 
-        for i, val in enumerate(attributes_values):
+        for i, val in enumerate(attr_values):
             if i == self.target_index:
                 continue
 
             for c in classes_ll:
                 if self.parents[i] is None:
-                    estim = self.single_counters[c, (i, attributes_values[i])]
-                    estim /= self.single_counters[c, (self.tgt_index, c)]
+                    estim = self.counter.get(c, (i, attr_values[i]))
+                    estim /= self.counter.get(c)
                 else:
                     p = self.parents[i]
-                    pair_key = (c, (min(i, p), attributes_values[min(i, p)]),
-                                   (max(i, p), attributes_values[max(i, p)]))
-                    estim = self.pairs_counters[pair_key]
+                    pair_key = (c, (min(i, p), attr_values[min(i, p)]),
+                                   (max(i, p), attr_values[max(i, p)]))
+                    estim = self.counter.get(*pair_key)
 
-                    single_key = (c, (p, attributes_values[p]))
-                    estim /= self.single_counters[single_key] + EPS
+                    estim /= self.counter.get(c, (p, attr_values[p])) + EPS
 
                 classes_ll[c] += log(estim + EPS)
 
         return max(classes_ll, key=lambda k: classes_ll[k])
 
 
-P = NaiveBayesClassifier('examples/classifiers/emotions-train.arff')
-P.train('./examples/classifiers/emotions-train.arff', P.variables[0].name)
+class AverageOneDependenceClassifier(Classifier):
+
+    def __init__(self, arff_file_name):
+        super().__init__(arff_file_name)
+
+        self.pairs_counters = None
+        self.single_counters = None
+
+
+#P = NaiveBayesClassifier('examples/classifiers/emotions-train.arff')
+#P.train('./examples/classifiers/emotions-train.arff', P.variables[0].name)
 #
 # Q = NaiveBayesClassifier('examples/classifiers/medical-train.arff')
 # Q.train('./examples/classifiers/medical-train.arff', Q.variables[0])
 #
-# R = NaiveBayesClassifier('examples/classifiers/yeast-train.arff')
-# R.train('./examples/classifiers/yeast-train.arff', R.variables[0])
+R = NaiveBayesClassifier('examples/classifiers/yeast-train.arff')
+R.train('./examples/classifiers/yeast-train.arff', R.variables[0].name)
 #
 # S = NaiveBayesClassifier('examples/classifiers/yelp-train.arff')
 # S.train('./examples/classifiers/yelp-train.arff', S.variables[0])
 
 T = TreeAugmentedNaiveBayesClassifier('examples/classifiers/yeast-train.arff')
-T.train('./examples/classifiers/yeast-train.arff', T.variables[0].name)
+#T.train('./examples/classifiers/yeast-train.arff', T.variables[0].name)
 
-# U = TreeAugmentedNaiveBayesClassifier('examples/classifiers/yelp-train.arff')
-# U.train('./examples/classifiers/yelp-train.arff', U.variables[0].name)
+U = TreeAugmentedNaiveBayesClassifier('examples/classifiers/yelp-train.arff')
+U.train('./examples/classifiers/yelp-train.arff', U.variables[0].name)
 
-# N = TreeAugmentedNaiveBayesClassifier('./examples/classifiers/small-train.arff')
-# N.train('./examples/classifiers/small-train.arff', N.variables[0].name)
+N = TreeAugmentedNaiveBayesClassifier('./examples/classifiers/small-train.arff')
+N.train('./examples/classifiers/small-train.arff', N.variables[0].name)
 
 # M = TreeAugmentedNaiveBayesClassifier('examples/classifiers/medical-train.arff')
 # M.train('./examples/classifiers/medical-train.arff', M.variables[0].name)
