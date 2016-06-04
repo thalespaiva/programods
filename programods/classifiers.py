@@ -10,6 +10,7 @@ from itertools import product
 
 EPS = 0.0001
 
+
 def get_arff_part(arff_file_name, part):
     arff_file = open(arff_file_name)
     arff_info = arff.load(arff_file)
@@ -25,15 +26,39 @@ def increment_or_init(dict_, key):
         dict_[key] = 1
 
 
-class NaiveBayesClassifier:
+class Classifier:
 
     def __init__(self, arff_file_name):
         arff_attributes = get_arff_part(arff_file_name, 'attributes')
 
-        self.variables = [a[0] for a in arff_attributes]
         self.indexed_variables = {}
+        self.variables = []
         for i, a in enumerate(arff_attributes):
-            self.indexed_variables[a[0]] = (i, Variable(a[0], a[1]))
+            var = Variable(a[0], a[1])
+            self.indexed_variables[a[0]] = (i, var)
+            self.variables.append(var)
+
+    def train(self, arff_file_name, target_variable_name):
+        raise NotImplementedError("Subclasses should implement this!")
+
+    def classify(self, attributes_values):
+        raise NotImplementedError("Subclasses should implement this!")
+
+    def test(self, arff_file_name):
+        test_set = get_arff_part(arff_file_name, 'data')
+        no_corrects = 0
+        for test_unit in test_set:
+            expected_class = self.classify(test_unit)
+            if expected_class == test_unit[self.target_index]:
+                no_corrects += 1
+
+        print("P = ", no_corrects/len(test_set))
+
+
+class NaiveBayesClassifier(Classifier):
+
+    def __init__(self, arff_file_name):
+        super().__init__(arff_file_name)
 
         self.target_variable = None
         self.target_index = None
@@ -85,28 +110,11 @@ class NaiveBayesClassifier:
 
         return max(classes_ll, key=lambda k: classes_ll[k])
 
-    def test(self, arff_file_name):
-        test_set = get_arff_part(arff_file_name, 'data')
-        no_corrects = 0
-        for test_unit in test_set:
-            expected_class = self.classify(test_unit)
-            if expected_class == test_unit[self.target_index]:
-                no_corrects += 1
 
-        print("P = ", no_corrects/len(test_set))
-
-
-class TreeAugmentedNaiveBayesClassifier:
+class TreeAugmentedNaiveBayesClassifier(Classifier):
 
     def __init__(self, arff_file_name):
-        arff_attributes = get_arff_part(arff_file_name, 'attributes')
-
-        self.indexed_variables = {}
-        self.variables = []
-        for i, a in enumerate(arff_attributes):
-            var = Variable(a[0], a[1])
-            self.indexed_variables[a[0]] = (i, var)
-            self.variables.append(var)
+        super().__init__(arff_file_name)
 
         self.pairs_counters = None
         self.single_counters = None
@@ -222,36 +230,36 @@ class TreeAugmentedNaiveBayesClassifier:
                     p = self.parents[i]
                     pair_key = (c, (min(i, p), attributes_values[min(i, p)]),
                                    (max(i, p), attributes_values[max(i, p)]))
-                    print('pk', pair_key)
                     estim = self.pairs_counters[pair_key]
 
                     single_key = (c, (p, attributes_values[p]))
-                    print('sk', single_key)
                     estim /= self.single_counters[single_key] + EPS
-                print(estim)
+
                 classes_ll[c] += log(estim + EPS)
 
         return max(classes_ll, key=lambda k: classes_ll[k])
 
-    def test(self, arff_file_name):
-        test_set = get_arff_part(arff_file_name, 'data')
-        no_corrects = 0
-        for test_unit in test_set:
-            expected_class = self.classify(test_unit)
-            if expected_class == test_unit[self.target_index]:
-                no_corrects += 1
-
-        print("P = ", no_corrects/len(test_set))
-
 
 P = NaiveBayesClassifier('examples/classifiers/emotions-train.arff')
-P.train('./examples/classifiers/emotions-train.arff', P.variables[0])
+P.train('./examples/classifiers/emotions-train.arff', P.variables[0].name)
+#
+# Q = NaiveBayesClassifier('examples/classifiers/medical-train.arff')
+# Q.train('./examples/classifiers/medical-train.arff', Q.variables[0])
+#
+# R = NaiveBayesClassifier('examples/classifiers/yeast-train.arff')
+# R.train('./examples/classifiers/yeast-train.arff', R.variables[0])
+#
+# S = NaiveBayesClassifier('examples/classifiers/yelp-train.arff')
+# S.train('./examples/classifiers/yelp-train.arff', S.variables[0])
 
-Q = NaiveBayesClassifier('examples/classifiers/medical-train.arff')
-Q = Q.train('./examples/classifiers/medical-train.arff', Q.variables[0])
+T = TreeAugmentedNaiveBayesClassifier('examples/classifiers/yeast-train.arff')
+T.train('./examples/classifiers/yeast-train.arff', T.variables[0].name)
 
-N = TreeAugmentedNaiveBayesClassifier('./examples/classifiers/small-train.arff')
-N.train('./examples/classifiers/small-train.arff', N.variables[0].name)
+# U = TreeAugmentedNaiveBayesClassifier('examples/classifiers/yelp-train.arff')
+# U.train('./examples/classifiers/yelp-train.arff', U.variables[0].name)
 
-M = TreeAugmentedNaiveBayesClassifier('examples/classifiers/medical-train.arff')
-M.train('./examples/classifiers/medical-train.arff', M.variables[0].name)
+# N = TreeAugmentedNaiveBayesClassifier('./examples/classifiers/small-train.arff')
+# N.train('./examples/classifiers/small-train.arff', N.variables[0].name)
+
+# M = TreeAugmentedNaiveBayesClassifier('examples/classifiers/medical-train.arff')
+# M.train('./examples/classifiers/medical-train.arff', M.variables[0].name)
