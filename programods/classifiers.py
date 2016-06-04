@@ -39,6 +39,8 @@ class Counter:
         self.counter[class_var, att_var_1, att_var_2] += 1
 
     def get(self, class_var, att_var_1=(None, None), att_var_2=(None, None)):
+        if att_var_1[0] and att_var_2[0] and att_var_1[0] > att_var_2[0]:
+            att_var_1, att_var_2 = att_var_2, att_var_1
         return self.counter[class_var, att_var_1, att_var_2]
 
 
@@ -256,8 +258,64 @@ class AverageOneDependenceClassifier(Classifier):
     def __init__(self, arff_file_name):
         super().__init__(arff_file_name)
 
-        self.pairs_counters = None
-        self.single_counters = None
+        self.counter = None
+
+    def set_counters_by_training(self, training_set, tgt_name):
+        tgt_index, tgt_var = self.indexed_variables[tgt_name]
+
+        self.counter = Counter()
+
+        n = len(training_set[0])
+        for i in range(n):
+            for obs in training_set:
+                tgt_obs = obs[tgt_index]
+                for j in range(i):
+                    self.counter.inc(tgt_obs, (j, obs[j]), (i, obs[i]))
+                self.counter.inc(tgt_obs, (i, obs[i]))
+
+        for c in tgt_var.domain:
+            self.counter.set(self.counter.get(c, (tgt_index, c)), c)
+
+        self.target_var = tgt_var
+        self.tgt_index = tgt_index
+        self.number_of_observations = len(training_set)
+
+        self.classes_likelihood = {}
+        for k in self.target_var.domain:
+            self.classes_likelihood[k] = log(self.counter.get(k) /
+                                             len(training_set))
+
+    def classify(self, attr_values):
+        classes_ll = {k: 0 for k in self.target_var.domain}
+
+        for c in classes_ll:
+            for i, i_val in enumerate(attr_values):
+                if i == self.target_index:
+                    continue
+
+                for j, j_val in enumerate(attr_values):
+
+                    if j == self.target_var or j == i:
+                        continue
+
+
+                self.counter.get()
+
+                if self.parents[i] is None:
+                    estim = self.counter.get(c, (i, attr_values[i]))
+                    estim /= self.counter.get(c)
+                else:
+                    p = self.parents[i]
+                    pair_key = (c, (min(i, p), attr_values[min(i, p)]),
+                                   (max(i, p), attr_values[max(i, p)]))
+                    estim = self.counter.get(*pair_key)
+
+                    estim /= self.counter.get(c, (p, attr_values[p])) + EPS
+
+                classes_ll[c] += log(estim + EPS)
+
+        return max(classes_ll, key=lambda k: classes_ll[k])
+
 
 
 #P = NaiveBayesClassifier('examples/classifiers/emotions-train.arff')
@@ -273,13 +331,13 @@ R.train('./examples/classifiers/yeast-train.arff', R.variables[0].name)
 # S.train('./examples/classifiers/yelp-train.arff', S.variables[0])
 
 T = TreeAugmentedNaiveBayesClassifier('examples/classifiers/yeast-train.arff')
-#T.train('./examples/classifiers/yeast-train.arff', T.variables[0].name)
+T.train('./examples/classifiers/yeast-train.arff', T.variables[0].name)
 
-U = TreeAugmentedNaiveBayesClassifier('examples/classifiers/yelp-train.arff')
-U.train('./examples/classifiers/yelp-train.arff', U.variables[0].name)
+#U = TreeAugmentedNaiveBayesClassifier('examples/classifiers/yelp-train.arff')
+#U.train('./examples/classifiers/yelp-train.arff', U.variables[0].name)
 
-N = TreeAugmentedNaiveBayesClassifier('./examples/classifiers/small-train.arff')
-N.train('./examples/classifiers/small-train.arff', N.variables[0].name)
+# = TreeAugmentedNaiveBayesClassifier('./examples/classifiers/small-train.arff')
+#.train('./examples/classifiers/small-train.arff', N.variables[0].name)
 
 # M = TreeAugmentedNaiveBayesClassifier('examples/classifiers/medical-train.arff')
 # M.train('./examples/classifiers/medical-train.arff', M.variables[0].name)
